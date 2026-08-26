@@ -28,10 +28,13 @@ import { errorMessage } from '../../core/utils';
       .card {
         width: 100%;
         max-width: 400px;
-        background: #fff;
-        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.78);
+        border-radius: 20px;
         padding: 40px 32px;
-        box-shadow: 0 20px 50px rgba(20, 10, 60, 0.3);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border: 1px solid rgba(255, 255, 255, 0.55);
+        box-shadow: 0 24px 60px rgba(20, 10, 60, 0.35);
       }
       .logo {
         font-family: 'Poppins', sans-serif;

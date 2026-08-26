@@ -29,6 +29,7 @@ import { downloadBlob, errorMessage, formatDate, formatMoney } from '../../core/
   styles: [
     `
       .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+      @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
       .card { padding: 20px; margin-bottom: 20px; }
       .detail-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
       .detail-list .k { display: block; font-size: 12px; color: var(--color-text-soft); }

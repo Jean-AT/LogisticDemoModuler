@@ -60,7 +60,7 @@
               <input matInput type="number" formControlName="precioUnitarioEstimado" min="0" step="0.01" />
             </mat-form-field>
             <span class="money">{{ amount(subtotales()[i]) }}</span>
-            <button mat-icon-button color="warn" type="button" (click)="quitarFila(i)" *ngIf="rows().length > 1">
+            <button mat-icon-button color="warn" type="button" class="del-btn" (click)="quitarFila(i)" *ngIf="rows().length > 1">
               <mat-icon>delete</mat-icon>
             </button>
           </div>
@@ -76,7 +76,7 @@
 
     <div class="sticky-action-bar">
       <button mat-button type="button" (click)="cancelar()">Cancelar</button>
-      <button mat-flat-button class="btn-primary" type="submit" [disabled]="saving()">
+      <button mat-flat-button class="btn-primary grow-btn" type="submit" [disabled]="saving()">
         <mat-icon>save</mat-icon> {{ saving() ? 'Guardando…' : editId() ? 'Guardar cambios' : 'Guardar borrador' }}
       </button>
     </div>

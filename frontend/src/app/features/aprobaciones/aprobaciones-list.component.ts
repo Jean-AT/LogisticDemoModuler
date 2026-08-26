@@ -43,12 +43,16 @@ import { errorMessage, formatDate } from '../../core/utils';
     EmptyStateComponent,
   ],
   templateUrl: './aprobaciones-list.component.html',
-  styles: [
-    `
+    styles: [
+      `
       .filters { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; padding: 16px; margin-bottom: 16px; }
       .filters mat-form-field { width: 180px; }
+      @media (max-width: 640px) {
+        .filters mat-form-field { width: 100%; }
+        .filters button { flex: 1; }
+      }
     `,
-  ],
+    ],
 })
 export class AprobacionesListComponent implements OnInit {
   private readonly service = inject(AprobacionesService);

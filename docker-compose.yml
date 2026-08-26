@@ -1,28 +1,10 @@
 
 services:
-  sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: logistica-sqlserver
-    environment:
-      ACCEPT_EULA: "Y"
-      SA_PASSWORD: "YourStrongPassword123!"
-      MSSQL_PID: "Developer"
-    ports:
-      - "1433:1433"
-    volumes:
-      - sqlserver_data:/var/opt/mssql
-
   backend:
     build: .
     container_name: logistica-api
-    depends_on:
-      - sqlserver
-    environment:
-      DB_URL: "jdbc:sqlserver://sqlserver:1433;databaseName=master;encrypt=true;trustServerCertificate=true"
-      DB_USERNAME: "sa"
-      DB_PASSWORD: "YourStrongPassword123!"
+    env_file:
+      - .env
     ports:
       - "8080:8080"
-
-volumes:
-  sqlserver_data:
+    restart: unless-stopped

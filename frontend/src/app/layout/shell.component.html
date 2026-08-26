@@ -20,7 +20,7 @@
     </button>
   </mat-toolbar>
 
-  <mat-sidenav-container class="rest" [style.height]="'calc(100vh - 64px)'">
+  <mat-sidenav-container class="rest">
     <mat-sidenav
       #drawer
       [mode]="isMobile() ? 'over' : 'side'"
@@ -51,7 +51,9 @@
     </mat-sidenav>
 
     <mat-sidenav-content class="content">
-      <router-outlet />
+      <div class="content-inner">
+        <router-outlet />
+      </div>
     </mat-sidenav-content>
   </mat-sidenav-container>
 </div>

@@ -32,16 +32,23 @@ import { UserRole } from '../../core/models';
     EmptyStateComponent,
   ],
   templateUrl: './dashboard.component.html',
-  styles: [
-    `
+    styles: [
+      `
       .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
       .section { margin-bottom: 24px; }
       .section h3 { font-size: 16px; margin: 0 0 12px; }
+      .section .card {
+        padding: 8px 16px 16px;
+        border: 1px solid var(--color-border);
+        background: rgba(255, 255, 255, 0.78);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+      }
       table { width: 100%; }
       .row-link { cursor: pointer; }
       .cta { margin-top: 8px; }
     `,
-  ],
+    ],
 })
 export class DashboardComponent implements OnInit {
   private readonly dashboard = inject(DashboardService);

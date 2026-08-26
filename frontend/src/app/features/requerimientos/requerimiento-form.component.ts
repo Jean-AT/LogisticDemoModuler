@@ -33,8 +33,8 @@ import { errorMessage, formatAmount } from '../../core/utils';
     PageHeaderComponent,
   ],
   templateUrl: './requerimiento-form.component.html',
-  styles: [
-    `
+    styles: [
+      `
       .form-header { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px; }
       .detalle-card { padding: 16px; margin-bottom: 16px; }
       .detalle-row {
@@ -48,8 +48,20 @@ import { errorMessage, formatAmount } from '../../core/utils';
       .totals b { font-size: 18px; }
       .sticky-action-bar { margin-top: 12px; }
       .full { width: 100%; }
-    `,
-  ],
+
+      @media (max-width: 800px) {
+        .form-header { grid-template-columns: 1fr; }
+      }
+      @media (max-width: 760px) {
+        .detalle-row { grid-template-columns: 1fr 1fr; gap: 8px; }
+        .detalle-row .money { justify-self: end; }
+        .detalle-row .del-btn { justify-self: end; }
+        .detalle-row.header { display: none; }
+        .sticky-action-bar { flex-wrap: wrap; }
+        .sticky-action-bar .grow-btn { flex: 1 1 100%; }
+      }
+      `,
+    ],
 })
 export class RequerimientoFormComponent implements OnInit {
   private readonly fb = inject(NonNullableFormBuilder);

@@ -34,7 +34,11 @@ html, body {
   margin: 0;
   font-family: 'Source Sans 3', system-ui, sans-serif;
   color: var(--color-text);
-  background-color: var(--color-bg);
+  background:
+    radial-gradient(1200px 600px at 100% 0%, rgba(122, 90, 248, 0.10), transparent 60%),
+    radial-gradient(900px 500px at 0% 100%, rgba(91, 60, 196, 0.10), transparent 60%),
+    var(--color-bg);
+  background-attachment: fixed;
 }
 
 h1, h2, h3, h4, .mat-typography h1, .mat-typography h2, .mat-typography h3 {
@@ -57,6 +61,10 @@ a { color: var(--color-primary); text-decoration: none; }
   margin: 0 auto;
 }
 
+@media (max-width: 768px) {
+  .page, .container { padding: 16px; }
+}
+
 .text-soft { color: var(--color-text-soft); }
 .text-primary { color: var(--color-primary); }
 .mt-0 { margin-top: 0; }
@@ -76,21 +84,55 @@ a { color: var(--color-primary); text-decoration: none; }
 }
 
 .card {
-  background: var(--color-surface);
+  background: rgba(255, 255, 255, 0.78);
   border: 1px solid var(--color-border);
-  border-radius: 12px;
-  box-shadow: 0 1px 2px rgba(36, 27, 57, 0.04);
+  border-radius: 14px;
+  box-shadow: 0 8px 30px rgba(36, 27, 57, 0.06);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  overflow-x: auto;
+}
+
+/* Tablas de datos: evita que se rompa el layout, con scroll horizontal */
+table.payload-table {
+  min-width: 640px;
+}
+
+/* Tablas transparentes para que se integren con el card glassmorphism */
+.mat-mdc-table {
+  background-color: transparent !important;
+}
+.mat-mdc-table .mat-mdc-row,
+.mat-mdc-table .mat-mdc-header-row {
+  background-color: transparent !important;
+}
+
+@media (max-width: 768px) {
+  table.payload-table {
+    min-width: 520px;
+  }
 }
 
 .sticky-action-bar {
   position: sticky;
   bottom: 0;
-  background: var(--color-surface);
-  border-top: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid rgba(255, 255, 255, 0.6);
   padding: 16px 24px;
   display: flex;
   gap: 12px;
   justify-content: flex-end;
+}
+
+@media (max-width: 640px) {
+  .sticky-action-bar {
+    flex-wrap: wrap;
+    padding: 12px 16px;
+    gap: 8px;
+  }
+  .sticky-action-bar > * { flex: 1 1 auto; }
 }
 
 .detail-grid {
@@ -112,9 +154,29 @@ mat-toolbar {
   --mat-toolbar-container-text-color: #fff;
 }
 
-.mat-primary {
-  background-color: var(--color-primary) !important;
-  color: #fff !important;
+/* Form fields: limpios y legibles (sin relleno que tape el texto) */
+.mat-mdc-form-field {
+  --mat-form-field-outlined-container-color: transparent;
+  --mat-form-field-outlined-container-shape: 10px;
+  --mat-form-field-outlined-outline-color: var(--color-border);
+  --mat-form-field-outlined-outline-width: 1px;
+  --mat-form-field-outlined-hover-outline-color: var(--color-secondary);
+  --mat-form-field-outlined-focus-outline-color: var(--color-primary);
+  --mat-form-field-outlined-label-text-color: var(--color-text-soft);
+  --mat-form-field-outlined-input-text-color: var(--color-text);
+  --mat-form-field-outlined-input-text-placeholder-color: var(--color-text-soft);
+}
+
+.mat-mdc-form-field .mat-mdc-input-element {
+  color: var(--color-text);
+}
+
+.mat-mdc-select {
+  --mat-select-enabled-trigger-text-color: var(--color-text);
+}
+
+.mat-mdc-select-panel .mat-mdc-option {
+  color: var(--color-text);
 }
 
 .btn-primary {
@@ -132,4 +194,42 @@ mat-toolbar {
 .btn-danger {
   background-color: var(--color-danger) !important;
   color: #fff !important;
+}
+
+/* Diálogos y overlays con efecto vidrio */
+.mat-mdc-dialog-surface {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.mat-mdc-dialog-container .mat-mdc-dialog-surface {
+  box-shadow: 0 20px 50px rgba(36, 27, 57, 0.18) !important;
+}
+
+/* Snackbar */
+.mat-mdc-snack-bar-container .mat-mdc-snack-bar-surface {
+  background: rgba(36, 27, 57, 0.92) !important;
+  backdrop-filter: blur(8px);
+}
+
+/* Scrollbar sutil */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(122, 90, 248, 0.35) transparent;
+}
+*::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(122, 90, 248, 0.35);
+  border-radius: 8px;
+}
+
+/* Ajustes responsive transversales */
+@media (max-width: 768px) {
+  .flex-between { flex-wrap: wrap; }
+  .grid, .detail-grid { grid-template-columns: 1fr !important; }
 }

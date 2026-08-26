@@ -36,6 +36,7 @@ import { accionLabel, errorMessage, formatAmount, formatDate, formatMoney } from
   styles: [
     `
       .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+      @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
       .card { padding: 20px; }
       .grid h3 { margin-top: 0; }
       .detail-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }

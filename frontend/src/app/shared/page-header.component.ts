@@ -42,6 +42,11 @@ import { MatIconModule } from '@angular/material/icon';
         display: flex;
         gap: 8px;
         flex-shrink: 0;
+        flex-wrap: wrap;
+      }
+      @media (max-width: 640px) {
+        .page-header { flex-direction: column; align-items: stretch; }
+        .actions { width: 100%; flex-wrap: wrap; }
       }
     `,
   ],

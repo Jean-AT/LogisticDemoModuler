@@ -44,21 +44,38 @@ const NAV_ITEMS: NavItem[] = [
     MatTooltipModule,
   ],
   templateUrl: './shell.component.html',
-  styles: [
-    `
+    styles: [
+      `
       .shell { height: 100vh; display: flex; flex-direction: column; }
-      .topbar { display: flex; align-items: center; gap: 8px; height: 64px; }
+      .topbar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 64px;
+        background: rgba(91, 60, 196, 0.70) !important;
+        --mat-toolbar-container-background-color: transparent;
+        --mat-toolbar-container-text-color: #fff;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+      }
       .topbar .menu-btn { color: #fff; }
-      .topbar .title { font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 18px; }
+      .topbar .title { font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 18px; white-space: nowrap; flex-shrink: 1; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
       .topbar .spacer { flex: 1; }
-      .topbar .brand-icon { font-size: 22px; }
+      .topbar .brand-icon { font-size: 22px; flex-shrink: 0; }
+      @media (max-width: 640px) {
+        .topbar { height: 56px; }
+        .topbar .title { font-size: 15px; }
+        .user-box .meta { display: none; }
+      }
       .user-box {
         display: flex;
         align-items: center;
         gap: 10px;
         padding: 6px 12px;
         border-radius: 999px;
-        background: rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.16);
+        border: 1px solid rgba(255, 255, 255, 0.25);
         color: #fff;
       }
       .user-box .avatar {
@@ -76,40 +93,59 @@ const NAV_ITEMS: NavItem[] = [
       .user-box .role { font-size: 11px; opacity: 0.85; }
       .logout-btn { color: #fff !important; }
 
-      .sidenav { width: 264px; border-right: 1px solid var(--color-border); }
+      .sidenav {
+        width: 300px;
+        height: 850px;
+        margin: 1rem;
+        background: rgba(255, 255, 255, 0.72) !important;
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border: 1px solid var(--color-border);
+        border-radius: 1rem;
+        box-shadow: 4px 0 24px rgba(36, 27, 57, 0.06);
+      }
+      .sidenav ::ng-deep .mat-drawer-inner-container {
+        overflow-x: hidden;
+        overflow-y: auto;
+      }
       .brand {
         display: flex;
         align-items: center;
         gap: 10px;
-        padding: 18px 18px 12px;
+        padding: 14px 14px 10px;
       }
       .brand .logo {
-        width: 38px;
-        height: 38px;
-        border-radius: 10px;
+        width: 32px;
+        height: 32px;
+        border-radius: 9px;
         background: var(--color-primary);
         color: #fff;
         display: grid;
         place-items: center;
+        box-shadow: 0 6px 20px rgba(91, 60, 196, 0.35);
       }
-      .brand .name { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 15px; line-height: 1.1; }
+      .brand .name { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 14px; line-height: 1.1; }
       .brand .sub { font-size: 11px; color: var(--color-text-soft); }
 
-      mat-list { padding-top: 8px; }
+      mat-list { padding-top: 4px; }
       .nav-item {
         border-radius: 10px;
-        margin: 2px 10px;
+        margin: 2px 8px;
         color: var(--color-text);
+        --mat-list-list-item-leading-icon-start-space: 14px;
+        --mat-list-list-item-leading-icon-end-space: 14px;
       }
       .nav-item.active {
-        background: var(--color-primary-soft);
+        background: rgba(238, 232, 255, 0.9);
         color: var(--color-primary-strong);
         font-weight: 600;
       }
-      .nav-item mat-icon { margin-right: 12px; }
-      .content { flex: 1; overflow: auto; }
-    `,
-  ],
+      .nav-item mat-icon { margin-right: 10px; }
+      .content { flex: 1; overflow: auto; padding: 24px; }
+      .content-inner { max-width: 1200px; margin: 0 1rem; width: 100%; }
+      .rest { flex: 1; min-height: 0; }
+      `,
+    ],
 })
 export class ShellComponent {
   private readonly session = inject(SessionService);

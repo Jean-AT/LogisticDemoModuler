@@ -54,6 +54,10 @@ import { errorMessage, formatDate } from '../../core/utils';
         margin-bottom: 16px;
       }
       .filters mat-form-field { width: 180px; }
+      @media (max-width: 640px) {
+        .filters mat-form-field { width: 100%; }
+        .filters button { flex: 1; }
+      }
       .btn-row { padding: 16px 16px 0; }
     `,
   ],
