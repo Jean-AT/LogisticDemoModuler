@@ -1,0 +1,42 @@
+services:
+  - type: web
+    name: logistica-demo-api
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /swagger-ui.html
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: logistica-demo-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: logistica-demo-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: logistica-demo-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: logistica-demo-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: logistica-demo-db
+          property: password
+      - key: DEMO_REPORT_COMPANY_NAME
+        value: Logistica Demo SAC
+      - key: DEMO_JWT_SECRET
+        generateValue: true
+      - key: DEMO_JWT_EXPIRATION_MS
+        value: "3600000"
+
+databases:
+  - name: logistica-demo-db
+    plan: free
+    region: oregon
+    databaseName: logistica_demo
+    user: logistica_demo_user

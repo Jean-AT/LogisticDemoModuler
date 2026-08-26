@@ -10,6 +10,7 @@ import com.logistica.demo.shared.config.DemoReportProperties;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -26,10 +27,21 @@ import org.springframework.stereotype.Service;
 @Service
 public class PdfReportService {
 
+    private static final String PDFBOX_FONT_CACHE_PROPERTY = "pdfbox.fontcache";
     private static final float PAGE_MARGIN = 48f;
     private static final float PAGE_BOTTOM_MARGIN = 48f;
     private static final float LINE_HEIGHT = 14f;
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+    static {
+        String configuredFontCache = System.getProperty(PDFBOX_FONT_CACHE_PROPERTY);
+        if (configuredFontCache == null || configuredFontCache.isBlank()) {
+            System.setProperty(
+                    PDFBOX_FONT_CACHE_PROPERTY,
+                    Path.of(System.getProperty("java.io.tmpdir")).toString());
+        }
+    }
+
     private static final PDType1Font FONT_REGULAR = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
     private static final PDType1Font FONT_BOLD = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
     private static final PDType1Font FONT_OBLIQUE = new PDType1Font(Standard14Fonts.FontName.HELVETICA_OBLIQUE);
