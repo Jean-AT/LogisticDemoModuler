@@ -1,0 +1,82 @@
+<ng-container *ngIf="oc(); else loadingTpl">
+  <app-page-header [title]="oc()!.numero" [subtitle]="'Detalle de orden de compra'">
+    <ng-container actions>
+      <button mat-stroked-button (click)="verRequerimiento()">Ver requerimiento origen</button>
+    </ng-container>
+  </app-page-header>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h3>Datos de la orden</h3>
+        <div class="detail-list">
+          <div><span class="k">Requerimiento origen</span><span class="v text-primary">{{ oc()!.requerimientoNumero }}</span></div>
+          <div><span class="k">Proveedor</span><span class="v">{{ oc()!.proveedor.code }} · {{ oc()!.proveedor.name }}</span></div>
+          <div><span class="k">Moneda</span><span class="v">{{ oc()!.moneda }}</span></div>
+          <div><span class="k">Tipo de cambio</span><span class="v">{{ oc()!.tipoCambio }}</span></div>
+          <div><span class="k">Generada por</span><span class="v">{{ oc()!.createdBy }}</span></div>
+          <div><span class="k">Generada</span><span class="v">{{ fecha(oc()!.generatedAt) }}</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Detalle de ítems</h3>
+        <table mat-table [dataSource]="oc()!.detalles">
+          <ng-container matColumnDef="item">
+            <th mat-header-cell *matHeaderCellDef>Ítem</th>
+            <td mat-cell *matCellDef="let d">{{ d.itemCode }} · {{ d.itemName }}</td>
+          </ng-container>
+          <ng-container matColumnDef="almacen">
+            <th mat-header-cell *matHeaderCellDef>Almacén</th>
+            <td mat-cell *matCellDef="let d">{{ d.almacenName }}</td>
+          </ng-container>
+          <ng-container matColumnDef="cantidad">
+            <th mat-header-cell *matHeaderCellDef>Cant.</th>
+            <td mat-cell *matCellDef="let d">{{ d.cantidad }}</td>
+          </ng-container>
+          <ng-container matColumnDef="precio">
+            <th mat-header-cell *matHeaderCellDef>Precio</th>
+            <td mat-cell *matCellDef="let d">{{ money(d.precioUnitario, oc()!.moneda) }}</td>
+          </ng-container>
+          <ng-container matColumnDef="subtotal">
+            <th mat-header-cell *matHeaderCellDef>Subtotal</th>
+            <td mat-cell *matCellDef="let d" class="money">{{ money(d.subtotalLinea, oc()!.moneda) }}</td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="columns"></tr>
+          <tr mat-row *matRowDef="let row; columns: columns"></tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3>Auditoría de creación</h3>
+        <div class="detail-list">
+          <div><span class="k">Creado por</span><span class="v">{{ oc()!.createdBy }}</span></div>
+          <div><span class="k">Creado</span><span class="v">{{ fecha(oc()!.createdAt) }}</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card total-card">
+        <div class="row"><span>Subtotal</span><span>{{ money(oc()!.subtotal, oc()!.moneda) }}</span></div>
+        <div class="row"><span>IGV</span><span>{{ money(oc()!.igv, oc()!.moneda) }}</span></div>
+        <div class="row grand"><span>Total</span><span>{{ money(oc()!.total, oc()!.moneda) }}</span></div>
+      </div>
+
+      <div class="card">
+        <h3>Exportar PDF</h3>
+        <p class="text-soft" style="font-size:13px;">Completa los encabezados y descarga el documento.</p>
+        <app-pdf-header-form [expanded]="true" />
+        <button mat-flat-button class="btn-primary" style="width:100%;margin-top:12px;" (click)="exportarPdf()" [disabled]="exporting()">
+          <mat-icon>picture_as_pdf</mat-icon> {{ exporting() ? 'Generando…' : 'Exportar PDF' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <button mat-button (click)="volver()"><mat-icon>arrow_back</mat-icon> Volver a compras</button>
+</ng-container>
+
+<ng-template #loadingTpl>
+  <div class="card" style="display:flex;justify-content:center;padding:40px;"><mat-spinner diameter="40" /></div>
+</ng-template>

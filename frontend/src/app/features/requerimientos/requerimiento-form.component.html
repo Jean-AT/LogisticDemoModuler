@@ -1,0 +1,88 @@
+<app-page-header
+  [title]="editId() ? 'Editar requerimiento' : 'Nuevo requerimiento'"
+  subtitle="Se guarda como borrador; luego puedes enviarlo a aprobación."
+>
+</app-page-header>
+
+<div class="card" style="padding:24px;" *ngIf="!loading(); else loadingTpl">
+  <form [formGroup]="form" (ngSubmit)="save()">
+    <h3>Cabecera</h3>
+    <div class="form-header" style="margin-bottom:24px;">
+      <mat-form-field appearance="outline" class="full">
+        <mat-label>Descripción</mat-label>
+        <input matInput formControlName="descripcion" placeholder="Ej: Compra de mobiliario" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Proveedor</mat-label>
+        <mat-select formControlName="proveedorId">
+          <mat-option *ngFor="let p of proveedores()" [value]="p.id">{{ p.name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Moneda</mat-label>
+        <mat-select formControlName="moneda">
+          <mat-option *ngFor="let m of monedas" [value]="m">{{ m }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <h3>Detalle del requerimiento</h3>
+    <div class="detalle-card card">
+      <div class="detalle-row header">
+        <span>Ítem</span>
+        <span>Almacén</span>
+        <span>Cantidad</span>
+        <span>Precio estimado</span>
+        <span>Subtotal</span>
+        <span></span>
+      </div>
+      <div formArrayName="detalles">
+        @for (i of rows(); track i) {
+          <div class="detalle-row" [formGroupName]="i">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>Ítem</mat-label>
+              <mat-select formControlName="itemId">
+                <mat-option *ngFor="let it of items()" [value]="it.id">{{ it.code }} · {{ it.name }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>Almacén</mat-label>
+              <mat-select formControlName="almacenId">
+                <mat-option *ngFor="let a of almacenes()" [value]="a.id">{{ a.code }} · {{ a.name }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>Cant.</mat-label>
+              <input matInput type="number" formControlName="cantidad" min="1" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>Precio</mat-label>
+              <input matInput type="number" formControlName="precioUnitarioEstimado" min="0" step="0.01" />
+            </mat-form-field>
+            <span class="money">{{ amount(subtotales()[i]) }}</span>
+            <button mat-icon-button color="warn" type="button" (click)="quitarFila(i)" *ngIf="rows().length > 1">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        }
+      </div>
+      <button mat-stroked-button type="button" (click)="agregarFila()">
+        <mat-icon>add</mat-icon> Agregar ítem
+      </button>
+      <div class="totals">
+        <span>Total estimado: <b>{{ amount(total()) }}</b></span>
+      </div>
+    </div>
+
+    <div class="sticky-action-bar">
+      <button mat-button type="button" (click)="cancelar()">Cancelar</button>
+      <button mat-flat-button class="btn-primary" type="submit" [disabled]="saving()">
+        <mat-icon>save</mat-icon> {{ saving() ? 'Guardando…' : editId() ? 'Guardar cambios' : 'Guardar borrador' }}
+      </button>
+    </div>
+  </form>
+</div>
+
+<ng-template #loadingTpl>
+  <div class="card" style="display:flex;justify-content:center;padding:40px;"><mat-spinner diameter="40" /></div>
+</ng-template>

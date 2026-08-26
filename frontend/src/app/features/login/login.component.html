@@ -1,0 +1,42 @@
+<div class="login-wrap">
+  <div class="card">
+    <h1 class="logo">Beneficencia de Lima</h1>
+    <p class="sub">Sistema de Logística · Inicia sesión</p>
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <mat-form-field appearance="outline" class="full">
+        <mat-label>Usuario</mat-label>
+        <input matInput formControlName="username" autocomplete="username" placeholder="solicitante" />
+        <mat-icon matPrefix>person</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full">
+        <mat-label>Contraseña</mat-label>
+        <input
+          matInput
+          formControlName="password"
+          [type]="showPassword() ? 'text' : 'password'"
+          autocomplete="current-password"
+          placeholder="••••••••"
+        />
+        <mat-icon matSuffix class="clickable" (click)="showPassword.set(!showPassword())">
+          {{ showPassword() ? 'visibility_off' : 'visibility' }}
+        </mat-icon>
+      </mat-form-field>
+
+      <p class="error" *ngIf="error()">{{ error() }}</p>
+
+      <button
+        type="submit"
+        mat-flat-button
+        class="btn btn-primary"
+        [disabled]="form.invalid || loading()"
+      >
+        {{ loading() ? 'Entrando…' : 'Ingresar' }}
+      </button>
+    </form>
+
+    <div class="hint">
+      <strong>Cuentas demo:</strong> solicitante · aprobador · compras · admin — todas con <code>demo123</code>
+    </div>
+  </div>
+</div>

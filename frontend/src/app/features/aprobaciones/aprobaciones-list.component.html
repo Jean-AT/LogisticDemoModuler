@@ -1,0 +1,85 @@
+<app-page-header title="Solicitudes por aprobar" subtitle="Revisa y decide sobre los requerimientos enviados">
+</app-page-header>
+
+<div class="card filters">
+  <mat-form-field appearance="outline">
+    <mat-label>Número</mat-label>
+    <input matInput [formControl]="fNumero" (keyup.enter)="buscar()" placeholder="REQ-" />
+  </mat-form-field>
+  <mat-form-field appearance="outline">
+    <mat-label>Estado</mat-label>
+    <mat-select [formControl]="fEstado">
+      <mat-option *ngFor="let e of estados" [value]="e">{{ e }}</mat-option>
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field appearance="outline">
+    <mat-label>Desde</mat-label>
+    <input matInput type="date" [formControl]="fDesde" />
+  </mat-form-field>
+  <mat-form-field appearance="outline">
+    <mat-label>Hasta</mat-label>
+    <input matInput type="date" [formControl]="fHasta" />
+  </mat-form-field>
+  <button mat-flat-button class="btn-primary" (click)="buscar()"><mat-icon>search</mat-icon> Filtrar</button>
+  <button mat-stroked-button (click)="limpiar()">Limpiar</button>
+</div>
+
+<div class="card" *ngIf="page(); else loadingTpl">
+  <app-empty-state
+    *ngIf="page()!.content.length === 0"
+    title="Sin solicitudes"
+    subtitle="No hay requerimientos que coincidan con los filtros."
+  />
+  <table mat-table [dataSource]="page()!.content" class="payload-table" *ngIf="page()!.content.length > 0">
+    <ng-container matColumnDef="numero">
+      <th mat-header-cell *matHeaderCellDef>N°</th>
+      <td mat-cell *matCellDef="let r" class="text-primary">{{ r.numero }}</td>
+    </ng-container>
+    <ng-container matColumnDef="descripcion">
+      <th mat-header-cell *matHeaderCellDef>Descripción</th>
+      <td mat-cell *matCellDef="let r">{{ r.descripcion }}</td>
+    </ng-container>
+    <ng-container matColumnDef="proveedor">
+      <th mat-header-cell *matHeaderCellDef>Proveedor</th>
+      <td mat-cell *matCellDef="let r">{{ r.proveedor.name }}</td>
+    </ng-container>
+    <ng-container matColumnDef="moneda">
+      <th mat-header-cell *matHeaderCellDef>Moneda</th>
+      <td mat-cell *matCellDef="let r">{{ r.moneda }}</td>
+    </ng-container>
+    <ng-container matColumnDef="fecha">
+      <th mat-header-cell *matHeaderCellDef>Creado</th>
+      <td mat-cell *matCellDef="let r">{{ fecha(r.createdAt) }}</td>
+    </ng-container>
+    <ng-container matColumnDef="estado">
+      <th mat-header-cell *matHeaderCellDef>Estado</th>
+      <td mat-cell *matCellDef="let r"><app-status-chip [estado]="r.estado" /></td>
+    </ng-container>
+    <ng-container matColumnDef="solicitante">
+      <th mat-header-cell *matHeaderCellDef>Solicitante</th>
+      <td mat-cell *matCellDef="let r">{{ r.createdBy }}</td>
+    </ng-container>
+    <ng-container matColumnDef="acciones">
+      <th mat-header-cell *matHeaderCellDef>Acciones</th>
+      <td mat-cell *matCellDef="let r">
+        <button mat-button class="text-primary" (click)="ver(r.id)">Ver detalle</button>
+        <button mat-flat-button class="btn-primary" *ngIf="r.estado === 'ENVIADO' || r.estado === 'OBSERVADO'" (click)="aprobar(r)">Aprobar</button>
+        <button mat-button class="btn-warn" *ngIf="r.estado === 'ENVIADO' || r.estado === 'OBSERVADO'" (click)="observar(r)">Observar</button>
+        <button mat-button class="btn-danger" *ngIf="r.estado === 'ENVIADO' || r.estado === 'OBSERVADO'" (click)="rechazar(r)">Rechazar</button>
+      </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="columns"></tr>
+    <tr mat-row *matRowDef="let row; columns: columns"></tr>
+  </table>
+  <mat-paginator
+    [length]="page()!.totalElements"
+    [pageSize]="page()!.size"
+    [pageIndex]="page()!.page"
+    [pageSizeOptions]="[10, 20, 50]"
+    (page)="cargar($event.pageIndex, $event.pageSize)"
+  />
+</div>
+
+<ng-template #loadingTpl>
+  <div class="card" style="display:flex;justify-content:center;padding:40px;"><mat-spinner diameter="40" /></div>
+</ng-template>

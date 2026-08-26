@@ -1,0 +1,69 @@
+<app-page-header
+  title="Panel de control"
+  subtitle="Resumen de actividad según tu rol"
+>
+  <button mat-flat-button class="btn-primary" (click)="goNuevo()" *ngIf="role() === 'SOLICITANTE'">
+    <mat-icon>add</mat-icon>
+    Nuevo requerimiento
+  </button>
+</app-page-header>
+
+<div class="cards" *ngIf="data(); else loadingTpl">
+  @if (isSolicitante()) {
+    <app-stat-card label="Borradores" [value]="data()!.borradores" icon="edit_note" hint="Tus borradores" />
+    <app-stat-card label="Enviados" [value]="data()!.enviadosHoy" icon="send" color="#1D64C2" bg="#DBEAFB" hint="Enviados hoy" />
+    <app-stat-card label="Observados" [value]="data()!.observados" icon="visibility" color="#B45309" bg="#FCEFD9" hint="En revisión" />
+    <app-stat-card label="Aprobados" [value]="data()!.aprobados" icon="check_circle" color="#15803D" bg="#D8F3E5" hint="Aprobados" />
+    <app-stat-card label="Convertidos a OC" [value]="data()!.convertidosOC" icon="shopping_cart" color="#4726A8" bg="#EEE8FF" hint="Completados" />
+  } @else if (role() === 'APROBADOR') {
+    <app-stat-card label="Pendientes por revisar" [value]="data()!.pendientesAprobacion" icon="inbox" hint="Requerimientos ENVIADO" />
+    <app-stat-card label="Enviados hoy" [value]="data()!.enviadosHoy" icon="send" color="#1D64C2" bg="#DBEAFB" />
+    <app-stat-card label="Observados recientes" [value]="data()!.observados" icon="visibility" color="#B45309" bg="#FCEFD9" />
+    <app-stat-card label="Aprobados hoy" [value]="data()!.aprobadosHoy" icon="check_circle" color="#15803D" bg="#D8F3E5" />
+  } @else if (role() === 'COMPRAS') {
+    <app-stat-card label="Pendientes de generar OC" [value]="data()!.pendientesPorGenerarOC" icon="pending_actions" hint="Requerimientos APROBADOS" />
+    <app-stat-card label="OC generadas hoy" [value]="data()!.ocGeneradasHoy" icon="shopping_cart" color="#4726A8" bg="#EEE8FF" />
+    <app-stat-card label="Monto estimado pendiente" [value]="money(data()!.montoEstimadoPendiente)" icon="payments" color="#1D64C2" bg="#DBEAFB" />
+  }
+</div>
+
+<ng-template #loadingTpl>
+  <div class="flex" style="justify-content:center;padding:40px;"><mat-spinner diameter="40" /></div>
+</ng-template>
+
+<div class="section">
+  <h3>Recientes</h3>
+  <app-empty-state *ngIf="recentes().length === 0" title="Sin requerimientos recientes" subtitle="Aún no hay registros para mostrar aquí." />
+  <div class="card" *ngIf="recentes().length > 0">
+    <table mat-table [dataSource]="recentes()" class="payload-table">
+      <ng-container matColumnDef="numero">
+        <th mat-header-cell *matHeaderCellDef>N°</th>
+        <td mat-cell *matCellDef="let r" class="text-primary">{{ r.numero }}</td>
+      </ng-container>
+      <ng-container matColumnDef="descripcion">
+        <th mat-header-cell *matHeaderCellDef>Descripción</th>
+        <td mat-cell *matCellDef="let r">{{ r.descripcion }}</td>
+      </ng-container>
+      <ng-container matColumnDef="proveedor">
+        <th mat-header-cell *matHeaderCellDef>Proveedor</th>
+        <td mat-cell *matCellDef="let r">{{ r.proveedor.name }}</td>
+      </ng-container>
+      <ng-container matColumnDef="estado">
+        <th mat-header-cell *matHeaderCellDef>Estado</th>
+        <td mat-cell *matCellDef="let r"><app-status-chip [estado]="r.estado" /></td>
+      </ng-container>
+      <ng-container matColumnDef="fecha">
+        <th mat-header-cell *matHeaderCellDef>Actualizado</th>
+        <td mat-cell *matCellDef="let r">{{ fecha(r.updatedAt) }}</td>
+      </ng-container>
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let r">
+          <button mat-button class="text-primary" (click)="goRequerimiento(r.id)">Ver</button>
+        </td>
+      </ng-container>
+      <tr mat-header-row *matHeaderRowDef="columns"></tr>
+      <tr mat-row *matRowDef="let row; columns: columns" class="row-link" (click)="goRequerimiento(row.id)"></tr>
+    </table>
+  </div>
+</div>

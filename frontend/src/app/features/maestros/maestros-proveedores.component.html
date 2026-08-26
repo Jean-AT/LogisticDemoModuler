@@ -1,0 +1,32 @@
+<app-page-header title="Maestros · Proveedores" subtitle="Catálogo de proveedores">
+  <ng-container actions>
+    <button mat-flat-button class="btn-primary" (click)="toggleForm()">
+      <mat-icon>{{ showForm() ? 'close' : 'add' }}</mat-icon>
+      {{ showForm() ? 'Cancelar' : 'Nuevo proveedor' }}
+    </button>
+  </ng-container>
+</app-page-header>
+
+<div class="form-card card" *ngIf="showForm()">
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="form-row">
+      <mat-form-field appearance="outline"><mat-label>Código</mat-label><input matInput formControlName="code" placeholder="PRV-003" /></mat-form-field>
+      <mat-form-field appearance="outline"><mat-label>Nombre</mat-label><input matInput formControlName="name" /></mat-form-field>
+      <button mat-flat-button class="btn-primary" type="submit" [disabled]="form.invalid">Guardar</button>
+    </div>
+  </form>
+</div>
+
+<div class="card" *ngIf="!loading(); else loadingTpl">
+  <app-empty-state *ngIf="proveedores().length === 0" title="Sin proveedores" subtitle="Aún no hay proveedores registrados." icon="business" />
+  <table mat-table [dataSource]="proveedores()" class="payload-table" *ngIf="proveedores().length > 0">
+    <ng-container matColumnDef="code"><th mat-header-cell *matHeaderCellDef>Código</th><td mat-cell *matCellDef="let p" class="text-primary">{{ p.code }}</td></ng-container>
+    <ng-container matColumnDef="name"><th mat-header-cell *matHeaderCellDef>Nombre</th><td mat-cell *matCellDef="let p">{{ p.name }}</td></ng-container>
+    <tr mat-header-row *matHeaderRowDef="columns"></tr>
+    <tr mat-row *matRowDef="let row; columns: columns"></tr>
+  </table>
+</div>
+
+<ng-template #loadingTpl>
+  <div class="card" style="display:flex;justify-content:center;padding:40px;"><mat-spinner diameter="40" /></div>
+</ng-template>

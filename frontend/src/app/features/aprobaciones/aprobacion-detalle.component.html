@@ -1,0 +1,95 @@
+<ng-container *ngIf="req(); else loadingTpl">
+  <app-page-header [title]="req()!.numero" [subtitle]="'Revisión de aprobación'">
+    <ng-container actions>
+      <app-status-chip [estado]="req()!.estado" />
+      <button mat-stroked-button (click)="verRequerimiento()">Ver requerimiento</button>
+    </ng-container>
+  </app-page-header>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h3>Datos generales</h3>
+        <div class="detail-list">
+          <div><span class="k">Descripción</span><span class="v">{{ req()!.descripcion }}</span></div>
+          <div><span class="k">Moneda</span><span class="v">{{ req()!.moneda }}</span></div>
+          <div><span class="k">Solicitante</span><span class="v">{{ req()!.createdBy }}</span></div>
+          <div><span class="k">Creado</span><span class="v">{{ fecha(req()!.createdAt) }}</span></div>
+          <div><span class="k">Actualizado por</span><span class="v">{{ req()!.updatedBy }}</span></div>
+          <div><span class="k">Actualizado</span><span class="v">{{ fecha(req()!.updatedAt) }}</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Proveedor</h3>
+        <div class="detail-list">
+          <div><span class="k">Código</span><span class="v">{{ req()!.proveedor.code }}</span></div>
+          <div><span class="k">Nombre</span><span class="v">{{ req()!.proveedor.name }}</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Detalle de ítems</h3>
+        <table mat-table [dataSource]="req()!.detalles">
+          <ng-container matColumnDef="item">
+            <th mat-header-cell *matHeaderCellDef>Ítem</th>
+            <td mat-cell *matCellDef="let d">{{ d.itemCode }} · {{ d.itemName }}</td>
+          </ng-container>
+          <ng-container matColumnDef="almacen">
+            <th mat-header-cell *matHeaderCellDef>Almacén</th>
+            <td mat-cell *matCellDef="let d">{{ d.almacenName }}</td>
+          </ng-container>
+          <ng-container matColumnDef="cantidad">
+            <th mat-header-cell *matHeaderCellDef>Cant.</th>
+            <td mat-cell *matCellDef="let d">{{ d.cantidad }}</td>
+          </ng-container>
+          <ng-container matColumnDef="precio">
+            <th mat-header-cell *matHeaderCellDef>Precio est.</th>
+            <td mat-cell *matCellDef="let d">{{ money(d.precioUnitarioEstimado, req()!.moneda) }}</td>
+          </ng-container>
+          <ng-container matColumnDef="subtotal">
+            <th mat-header-cell *matHeaderCellDef>Subtotal</th>
+            <td mat-cell *matCellDef="let d" class="money">{{ money(d.subtotalLinea, req()!.moneda) }}</td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="columns"></tr>
+          <tr mat-row *matRowDef="let row; columns: columns"></tr>
+        </table>
+        <div class="totals"><span>Subtotal estimado: <b>{{ money(subtotal(req()!), req()!.moneda) }}</b></span></div>
+      </div>
+
+      <div class="card">
+        <h3>Historial de decisiones</h3>
+        <div class="timeline" *ngIf="req()!.aprobaciones.length">
+          <span *ngFor="let a of req()!.aprobaciones" class="tl">
+            <mat-chip>{{ accionLabel(a) }}</mat-chip>
+            <span>{{ a.usuario }} · {{ fecha(a.decisionAt) }}</span>
+            <span class="text-soft" *ngIf="a.comentario">{{ a.comentario }}</span>
+          </span>
+        </div>
+        <p class="text-soft mb-0" *ngIf="req()!.aprobaciones.length === 0">Sin decisiones registradas.</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h3>Documentación / Exportar PDF</h3>
+        <p class="text-soft" style="font-size:13px;">Completa los encabezados del documento institucional y exporta a PDF.</p>
+        <app-pdf-header-form [expanded]="true" />
+        <button mat-flat-button class="btn-primary" style="width:100%;margin-top:12px;" (click)="exportarPdf()" [disabled]="exporting()">
+          <mat-icon>picture_as_pdf</mat-icon> {{ exporting() ? 'Generando…' : 'Exportar PDF' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sticky-action-bar">
+    <button mat-flat-button class="btn-primary" *ngIf="req()!.estado === 'ENVIADO' || req()!.estado === 'OBSERVADO'" (click)="decidir('aprobar')">Aprobar</button>
+    <button mat-flat-button class="btn-warn" *ngIf="req()!.estado === 'ENVIADO' || req()!.estado === 'OBSERVADO'" (click)="decidir('observar')">Observar</button>
+    <button mat-flat-button class="btn-danger" *ngIf="req()!.estado === 'ENVIADO' || req()!.estado === 'OBSERVADO'" (click)="decidir('rechazar')">Rechazar</button>
+    <button mat-button (click)="volver()">Volver</button>
+  </div>
+</ng-container>
+
+<ng-template #loadingTpl>
+  <div class="card" style="display:flex;justify-content:center;padding:40px;"><mat-spinner diameter="40" /></div>
+</ng-template>

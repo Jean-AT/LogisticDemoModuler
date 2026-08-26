@@ -1,0 +1,109 @@
+<ng-container *ngIf="req(); else loadingTpl">
+  <app-page-header [title]="req()!.numero" [subtitle]="req()!.descripcion">
+    <ng-container actions>
+      <app-status-chip [estado]="req()!.estado" />
+      <button mat-flat-button class="btn-primary" *ngIf="req()!.estado === 'BORRADOR'" (click)="enviar()">Enviar</button>
+      <button mat-stroked-button *ngIf="req()!.estado === 'BORRADOR' || req()!.estado === 'OBSERVADO'" (click)="editar()">
+        <mat-icon>edit</mat-icon> {{ req()!.estado === 'OBSERVADO' ? 'Corregir' : 'Editar' }}
+      </button>
+    </ng-container>
+  </app-page-header>
+
+  <div class="grid">
+    <div>
+      <div class="card" style="margin-bottom:20px;">
+        <h3>Datos generales</h3>
+        <div class="detail-list">
+          <div><span class="k">Estado</span><span class="v"><app-status-chip [estado]="req()!.estado" /></span></div>
+          <div><span class="k">Moneda</span><span class="v">{{ req()!.moneda }}</span></div>
+          <div><span class="k">Creado por</span><span class="v">{{ req()!.createdBy }}</span></div>
+          <div><span class="k">Creado</span><span class="v">{{ fecha(req()!.createdAt) }}</span></div>
+          <div><span class="k">Actualizado por</span><span class="v">{{ req()!.updatedBy }}</span></div>
+          <div><span class="k">Actualizado</span><span class="v">{{ fecha(req()!.updatedAt) }}</span></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:20px;">
+        <h3>Proveedor</h3>
+        <div class="detail-list">
+          <div><span class="k">Código</span><span class="v">{{ req()!.proveedor.code }}</span></div>
+          <div><span class="k">Nombre</span><span class="v">{{ req()!.proveedor.name }}</span></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:20px;">
+        <h3>Detalle de ítems</h3>
+        <table mat-table [dataSource]="req()!.detalles">
+          <ng-container matColumnDef="item">
+            <th mat-header-cell *matHeaderCellDef>Ítem</th>
+            <td mat-cell *matCellDef="let d">{{ d.itemCode }} · {{ d.itemName }}</td>
+          </ng-container>
+          <ng-container matColumnDef="almacen">
+            <th mat-header-cell *matHeaderCellDef>Almacén</th>
+            <td mat-cell *matCellDef="let d">{{ d.almacenName }}</td>
+          </ng-container>
+          <ng-container matColumnDef="cantidad">
+            <th mat-header-cell *matHeaderCellDef>Cantidad</th>
+            <td mat-cell *matCellDef="let d">{{ d.cantidad }}</td>
+          </ng-container>
+          <ng-container matColumnDef="precio">
+            <th mat-header-cell *matHeaderCellDef>Precio est.</th>
+            <td mat-cell *matCellDef="let d">{{ money(d.precioUnitarioEstimado, req()!.moneda) }}</td>
+          </ng-container>
+          <ng-container matColumnDef="subtotal">
+            <th mat-header-cell *matHeaderCellDef>Subtotal</th>
+            <td mat-cell *matCellDef="let d" class="money">{{ money(d.subtotalLinea, req()!.moneda) }}</td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="columns"></tr>
+          <tr mat-row *matRowDef="let row; columns: columns"></tr>
+        </table>
+        <div class="totals">
+          <span>Subtotal: <b>{{ money(subtotal(req()!), req()!.moneda) }}</b></span>
+          <span>IGV (18%): <b>{{ money(igv(req()!), req()!.moneda) }}</b></span>
+          <span>Total: <b>{{ money(total(req()!), req()!.moneda) }}</b></span>
+        </div>
+      </div>
+
+      <div class="card" *ngIf="req()!.aprobaciones.length > 0">
+        <h3>Aprobaciones</h3>
+        <div class="timeline">
+          <div class="tl-item" *ngFor="let a of req()!.aprobaciones">
+            <div class="tl-title">
+              <mat-chip>{{ accionLabel(a) }}</mat-chip>
+              <span>{{ a.usuario }} · {{ fecha(a.decisionAt) }}</span>
+            </div>
+            <div *ngIf="a.comentario" class="text-soft">{{ a.comentario }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="margin-bottom:20px;">
+        <h3>Historial de estados</h3>
+        <div class="timeline">
+          <div class="tl-item" *ngFor="let h of req()!.historialEstados">
+            <div class="tl-title">{{ historialText(h) }}</div>
+            <div class="tl-date">{{ h.usuario }} · {{ fecha(h.fechaHora) }}</div>
+            <div class="text-soft" *ngIf="h.comentario">{{ h.comentario }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" *ngIf="req()!.ordenCompra">
+        <h3>Orden de compra generada</h3>
+        <p class="mb-0">
+          <span class="text-primary" style="font-weight:600;">{{ req()!.ordenCompra!.numero }}</span>
+          <span class="text-soft"> · {{ req()!.ordenCompra!.moneda }} · {{ money(req()!.ordenCompra!.total, req()!.ordenCompra!.moneda) }}</span>
+        </p>
+        <button mat-flat-button class="btn-primary" class="oc-link" (click)="goOC()">
+          <mat-icon>open_in_new</mat-icon> Ver orden de compra
+        </button>
+      </div>
+    </div>
+  </div>
+</ng-container>
+
+<ng-template #loadingTpl>
+  <div class="card" style="display:flex;justify-content:center;padding:40px;"><mat-spinner diameter="40" /></div>
+</ng-template>
