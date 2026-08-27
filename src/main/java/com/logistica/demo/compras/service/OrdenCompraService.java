@@ -24,6 +24,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -111,7 +112,7 @@ public class OrdenCompraService {
         PageRequest pageRequest = PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 100),
                 Sort.by(Sort.Direction.DESC, "generatedAt"));
         Page<OrdenCompraResponse> result = ordenCompraRepository
-                .search(numeroFiltro, proveedorId, moneda, requerimientoId, inicio, fin, pageRequest)
+                .findAll(buildSearchSpecification(numeroFiltro, proveedorId, moneda, requerimientoId, inicio, fin), pageRequest)
                 .map(this::mapResponse);
         return PageResponse.of(result);
     }
@@ -154,5 +155,38 @@ public class OrdenCompraService {
                         .toList(),
                 ordenCompra.getCreatedBy(),
                 ordenCompra.getCreatedAt());
+    }
+
+    private Specification<OrdenCompra> buildSearchSpecification(
+            String numero,
+            Long proveedorId,
+            Moneda moneda,
+            Long requerimientoId,
+            LocalDateTime fechaInicio,
+            LocalDateTime fechaFin) {
+        return (root, query, cb) -> {
+            List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
+
+            if (numero != null) {
+                predicates.add(cb.like(cb.lower(root.get("numero")), "%" + numero.toLowerCase() + "%"));
+            }
+            if (proveedorId != null) {
+                predicates.add(cb.equal(root.get("proveedor").get("id"), proveedorId));
+            }
+            if (moneda != null) {
+                predicates.add(cb.equal(root.get("moneda"), moneda));
+            }
+            if (requerimientoId != null) {
+                predicates.add(cb.equal(root.get("requerimiento").get("id"), requerimientoId));
+            }
+            if (fechaInicio != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("generatedAt"), fechaInicio));
+            }
+            if (fechaFin != null) {
+                predicates.add(cb.lessThan(root.get("generatedAt"), fechaFin));
+            }
+
+            return cb.and(predicates.toArray(jakarta.persistence.criteria.Predicate[]::new));
+        };
     }
 }

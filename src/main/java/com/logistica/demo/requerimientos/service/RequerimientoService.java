@@ -33,6 +33,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -144,7 +145,7 @@ public class RequerimientoService {
         PageRequest pageRequest = PageRequest.of(normalizePage(page), normalizeSize(size),
                 Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<RequerimientoResponse> result = requerimientoRepository
-                .search(id, estado, numeroFiltro, ownerUsername, proveedorId, inicio, fin, pageRequest)
+                .findAll(buildSearchSpecification(id, estado, numeroFiltro, ownerUsername, proveedorId, inicio, fin), pageRequest)
                 .map(this::mapResponse);
         return PageResponse.of(result);
     }
@@ -281,5 +282,42 @@ public class RequerimientoService {
             return;
         }
         throw new AccessDeniedException("No tiene permisos para modificar este requerimiento.");
+    }
+
+    private Specification<Requerimiento> buildSearchSpecification(
+            Long id,
+            EstadoRequerimiento estado,
+            String numero,
+            String createdBy,
+            Long proveedorId,
+            LocalDateTime fechaInicio,
+            LocalDateTime fechaFin) {
+        return (root, query, cb) -> {
+            List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
+
+            if (id != null) {
+                predicates.add(cb.equal(root.get("id"), id));
+            }
+            if (estado != null) {
+                predicates.add(cb.equal(root.get("estado"), estado));
+            }
+            if (numero != null) {
+                predicates.add(cb.like(cb.lower(root.get("numero")), "%" + numero.toLowerCase() + "%"));
+            }
+            if (createdBy != null) {
+                predicates.add(cb.equal(cb.lower(root.get("createdBy")), createdBy.toLowerCase()));
+            }
+            if (proveedorId != null) {
+                predicates.add(cb.equal(root.get("proveedor").get("id"), proveedorId));
+            }
+            if (fechaInicio != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("createdAt"), fechaInicio));
+            }
+            if (fechaFin != null) {
+                predicates.add(cb.lessThan(root.get("createdAt"), fechaFin));
+            }
+
+            return cb.and(predicates.toArray(jakarta.persistence.criteria.Predicate[]::new));
+        };
     }
 }

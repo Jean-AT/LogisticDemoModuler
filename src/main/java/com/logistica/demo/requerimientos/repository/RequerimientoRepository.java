@@ -4,48 +4,12 @@ import com.logistica.demo.requerimientos.domain.EstadoRequerimiento;
 import com.logistica.demo.requerimientos.domain.Requerimiento;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface RequerimientoRepository extends JpaRepository<Requerimiento, Long> {
-
-    @Query(value = """
-            select r
-            from Requerimiento r
-            where (:id is null or r.id = :id)
-              and (:estado is null or r.estado = :estado)
-              and (cast(:numero as string) is null
-                  or lower(r.numero) like lower(concat('%', cast(:numero as string), '%')))
-              and (cast(:createdBy as string) is null
-                  or lower(r.createdBy) = lower(cast(:createdBy as string)))
-              and (:proveedorId is null or r.proveedor.id = :proveedorId)
-              and (:fechaInicio is null or r.createdAt >= :fechaInicio)
-              and (:fechaFin is null or r.createdAt < :fechaFin)
-            """, countQuery = """
-            select count(r)
-            from Requerimiento r
-            where (:id is null or r.id = :id)
-              and (:estado is null or r.estado = :estado)
-              and (cast(:numero as string) is null
-                  or lower(r.numero) like lower(concat('%', cast(:numero as string), '%')))
-              and (cast(:createdBy as string) is null
-                  or lower(r.createdBy) = lower(cast(:createdBy as string)))
-              and (:proveedorId is null or r.proveedor.id = :proveedorId)
-              and (:fechaInicio is null or r.createdAt >= :fechaInicio)
-              and (:fechaFin is null or r.createdAt < :fechaFin)
-            """)
-    Page<Requerimiento> search(
-            @Param("id") Long id,
-            @Param("estado") EstadoRequerimiento estado,
-            @Param("numero") String numero,
-            @Param("createdBy") String createdBy,
-            @Param("proveedorId") Long proveedorId,
-            @Param("fechaInicio") LocalDateTime fechaInicio,
-            @Param("fechaFin") LocalDateTime fechaFin,
-            Pageable pageable);
+public interface RequerimientoRepository extends JpaRepository<Requerimiento, Long>, JpaSpecificationExecutor<Requerimiento> {
 
     long countByEstado(EstadoRequerimiento estado);
 
