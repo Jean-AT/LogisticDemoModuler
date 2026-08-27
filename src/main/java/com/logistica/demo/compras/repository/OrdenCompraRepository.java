@@ -20,7 +20,8 @@ public interface OrdenCompraRepository extends JpaRepository<OrdenCompra, Long> 
     @Query(value = """
             select oc
             from OrdenCompra oc
-            where (:numero is null or lower(oc.numero) like lower(concat('%', :numero, '%')))
+            where (cast(:numero as string) is null
+                  or lower(oc.numero) like lower(concat('%', cast(:numero as string), '%')))
               and (:proveedorId is null or oc.proveedor.id = :proveedorId)
               and (:moneda is null or oc.moneda = :moneda)
               and (:requerimientoId is null or oc.requerimiento.id = :requerimientoId)
@@ -29,7 +30,8 @@ public interface OrdenCompraRepository extends JpaRepository<OrdenCompra, Long> 
             """, countQuery = """
             select count(oc)
             from OrdenCompra oc
-            where (:numero is null or lower(oc.numero) like lower(concat('%', :numero, '%')))
+            where (cast(:numero as string) is null
+                  or lower(oc.numero) like lower(concat('%', cast(:numero as string), '%')))
               and (:proveedorId is null or oc.proveedor.id = :proveedorId)
               and (:moneda is null or oc.moneda = :moneda)
               and (:requerimientoId is null or oc.requerimiento.id = :requerimientoId)

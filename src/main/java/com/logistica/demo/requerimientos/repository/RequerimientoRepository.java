@@ -17,8 +17,10 @@ public interface RequerimientoRepository extends JpaRepository<Requerimiento, Lo
             from Requerimiento r
             where (:id is null or r.id = :id)
               and (:estado is null or r.estado = :estado)
-              and (:numero is null or lower(r.numero) like lower(concat('%', :numero, '%')))
-              and (:createdBy is null or lower(r.createdBy) = lower(:createdBy))
+              and (cast(:numero as string) is null
+                  or lower(r.numero) like lower(concat('%', cast(:numero as string), '%')))
+              and (cast(:createdBy as string) is null
+                  or lower(r.createdBy) = lower(cast(:createdBy as string)))
               and (:proveedorId is null or r.proveedor.id = :proveedorId)
               and (:fechaInicio is null or r.createdAt >= :fechaInicio)
               and (:fechaFin is null or r.createdAt < :fechaFin)
@@ -27,8 +29,10 @@ public interface RequerimientoRepository extends JpaRepository<Requerimiento, Lo
             from Requerimiento r
             where (:id is null or r.id = :id)
               and (:estado is null or r.estado = :estado)
-              and (:numero is null or lower(r.numero) like lower(concat('%', :numero, '%')))
-              and (:createdBy is null or lower(r.createdBy) = lower(:createdBy))
+              and (cast(:numero as string) is null
+                  or lower(r.numero) like lower(concat('%', cast(:numero as string), '%')))
+              and (cast(:createdBy as string) is null
+                  or lower(r.createdBy) = lower(cast(:createdBy as string)))
               and (:proveedorId is null or r.proveedor.id = :proveedorId)
               and (:fechaInicio is null or r.createdAt >= :fechaInicio)
               and (:fechaFin is null or r.createdAt < :fechaFin)
