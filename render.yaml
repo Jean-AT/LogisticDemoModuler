@@ -33,6 +33,8 @@ services:
         generateValue: true
       - key: DEMO_JWT_EXPIRATION_MS
         value: "3600000"
+      - key: DEMO_CORS_ALLOWED_ORIGINS
+        value: "https://jean-at.github.io/LogisticDemoModulerFrontEnd,http://localhost:4200"
 
 databases:
   - name: logistica-demo-db
