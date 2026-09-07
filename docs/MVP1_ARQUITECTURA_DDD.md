@@ -90,9 +90,11 @@ com.logistica.demo
 - `NeedsBalanceQuery`: linea de Cuadro aprobada, dimensiones y saldo de cantidad.
 - `TransferNeedsToBudgetUseCase`: transferencia idempotente del consolidado.
 - `BudgetAvailabilityQuery`: consulta de disponibilidad por dimensiones y periodo.
-- `BudgetControlUseCase`: validar, precomprometer, comprometer y liberar.
+- `BudgetControlUseCase`: precomprometer, comprometer y liberar.
 
 Los contratos criticos se invocan en el mismo proceso y participan en la transaccion local. El Outbox no reemplaza la consistencia inmediata del saldo presupuestal.
+
+Las interfaces y DTO exactos estan registrados en `MVP1_CONTRATOS_BACKEND.md`. Su implementacion de persistencia se agregara con los esquemas Flyway sin cambiar estos limites.
 
 ## API y seguridad
 

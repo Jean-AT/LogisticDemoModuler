@@ -10,7 +10,7 @@ Las tareas se ejecutan en el orden indicado. Una tarea posterior puede comenzar 
 | 002 | `ARC-001` Crear espacios de paquetes para los cinco modulos objetivo. | RNF-02 | DOC-001 | COMPLETADA |
 | 003 | `ARC-002` Confirmar build backend independiente y diferir frontend hasta estabilizar la API. | RNF-01 | ARC-001 | COMPLETADA |
 | 004 | `ARC-003` Introducir `/api/v1`, `ProblemDetail`, paginacion y tipos comunes. | RNF-04, RNF-09 | ARC-001 | COMPLETADA |
-| 005 | `ARC-004` Definir contratos de modulo, eventos, Outbox e idempotencia. | RNF-02, RNF-05 | ARC-003 | PENDIENTE |
+| 005 | `ARC-004` Definir contratos de modulo, eventos, Outbox e idempotencia. | RNF-02, RNF-05 | ARC-003 | COMPLETADA |
 | 006 | `ARC-005` Agregar ArchUnit y reglas de dependencia. | RNF-02 | ARC-004 | PENDIENTE |
 | 007 | `ARC-006` Incorporar Actuator, perfiles y logs con `traceId`. | RNF-08 | ARC-003 | PENDIENTE |
 | 008 | `ARC-007` Crear estrategia Flyway `V4-V10` y validacion de migraciones. | RNF-03 | ARC-004 | PENDIENTE |

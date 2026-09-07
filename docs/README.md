@@ -14,6 +14,7 @@ El flujo demostrable del MVP1 sera:
 
 - [Decisiones y alcance](MVP1_DECISIONES_Y_ALCANCE.md)
 - [Arquitectura monolito modular y DDD](MVP1_ARQUITECTURA_DDD.md)
+- [Contratos backend entre modulos](MVP1_CONTRATOS_BACKEND.md)
 - [Modelo de datos e integraciones](MVP1_MODELO_DATOS_E_INTEGRACIONES.md)
 - [Requerimientos](MVP1_REQUERIMIENTOS.md)
 - [Backlog ordenado](MVP1_BACKLOG.md)
