@@ -4,7 +4,8 @@ import com.logistica.demo.aprobaciones.dto.AprobacionDecisionRequest;
 import com.logistica.demo.aprobaciones.service.AprobacionService;
 import com.logistica.demo.requerimientos.domain.EstadoRequerimiento;
 import com.logistica.demo.requerimientos.dto.RequerimientoResponse;
-import com.logistica.demo.shared.dto.PageResponse;
+import com.logistica.demo.sharedkernel.web.ApiPaths;
+import com.logistica.demo.sharedkernel.web.PageResponse;
 import com.logistica.demo.shared.exception.BadRequestException;
 import com.logistica.demo.shared.report.PdfHeaderData;
 import com.logistica.demo.shared.report.PdfHeaderRequest;
@@ -24,7 +25,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/aprobaciones")
+@RequestMapping({ApiPaths.LEGACY + "/aprobaciones", ApiPaths.V1 + "/aprobaciones"})
 public class AprobacionController {
 
     private final AprobacionService aprobacionService;

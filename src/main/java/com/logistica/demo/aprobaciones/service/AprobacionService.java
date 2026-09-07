@@ -8,7 +8,7 @@ import com.logistica.demo.requerimientos.domain.Requerimiento;
 import com.logistica.demo.requerimientos.dto.RequerimientoResponse;
 import com.logistica.demo.requerimientos.repository.RequerimientoRepository;
 import com.logistica.demo.requerimientos.service.RequerimientoService;
-import com.logistica.demo.shared.dto.PageResponse;
+import com.logistica.demo.sharedkernel.web.PageResponse;
 import com.logistica.demo.shared.exception.BusinessRuleException;
 import com.logistica.demo.shared.exception.ResourceNotFoundException;
 import java.time.LocalDate;
