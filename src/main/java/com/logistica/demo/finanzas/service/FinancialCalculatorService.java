@@ -1,7 +1,7 @@
 package com.logistica.demo.finanzas.service;
 
 import com.logistica.demo.shared.config.DemoFinanceProperties;
-import com.logistica.demo.shared.domain.Moneda;
+import com.logistica.demo.sharedkernel.domain.Moneda;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
