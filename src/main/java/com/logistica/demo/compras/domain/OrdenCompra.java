@@ -3,7 +3,7 @@ package com.logistica.demo.compras.domain;
 import com.logistica.demo.maestros.domain.Proveedor;
 import com.logistica.demo.requerimientos.domain.Requerimiento;
 import com.logistica.demo.shared.audit.AuditableEntity;
-import com.logistica.demo.shared.domain.Moneda;
+import com.logistica.demo.sharedkernel.domain.Moneda;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -2,8 +2,9 @@ package com.logistica.demo.compras.controller;
 
 import com.logistica.demo.compras.dto.OrdenCompraResponse;
 import com.logistica.demo.compras.service.OrdenCompraService;
-import com.logistica.demo.shared.domain.Moneda;
-import com.logistica.demo.shared.dto.PageResponse;
+import com.logistica.demo.sharedkernel.domain.Moneda;
+import com.logistica.demo.sharedkernel.web.ApiPaths;
+import com.logistica.demo.sharedkernel.web.PageResponse;
 import com.logistica.demo.shared.exception.BadRequestException;
 import com.logistica.demo.shared.report.PdfHeaderData;
 import com.logistica.demo.shared.report.PdfHeaderRequest;
@@ -24,7 +25,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/ordenes-compra")
+@RequestMapping({ApiPaths.LEGACY + "/ordenes-compra", ApiPaths.V1 + "/ordenes-compra"})
 public class OrdenCompraController {
 
     private final OrdenCompraService ordenCompraService;
