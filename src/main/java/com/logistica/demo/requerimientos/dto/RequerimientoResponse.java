@@ -3,7 +3,7 @@ package com.logistica.demo.requerimientos.dto;
 import com.logistica.demo.aprobaciones.dto.AprobacionResponse;
 import com.logistica.demo.maestros.dto.ProveedorResponse;
 import com.logistica.demo.requerimientos.domain.EstadoRequerimiento;
-import com.logistica.demo.shared.domain.Moneda;
+import com.logistica.demo.sharedkernel.domain.Moneda;
 import java.time.LocalDateTime;
 import java.util.List;
 

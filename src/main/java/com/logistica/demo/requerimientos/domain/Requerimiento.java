@@ -4,7 +4,7 @@ import com.logistica.demo.aprobaciones.domain.Aprobacion;
 import com.logistica.demo.compras.domain.OrdenCompra;
 import com.logistica.demo.maestros.domain.Proveedor;
 import com.logistica.demo.shared.audit.AuditableEntity;
-import com.logistica.demo.shared.domain.Moneda;
+import com.logistica.demo.sharedkernel.domain.Moneda;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

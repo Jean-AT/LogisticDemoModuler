@@ -4,7 +4,8 @@ import com.logistica.demo.requerimientos.domain.EstadoRequerimiento;
 import com.logistica.demo.requerimientos.dto.RequerimientoCreateRequest;
 import com.logistica.demo.requerimientos.dto.RequerimientoResponse;
 import com.logistica.demo.requerimientos.service.RequerimientoService;
-import com.logistica.demo.shared.dto.PageResponse;
+import com.logistica.demo.sharedkernel.web.ApiPaths;
+import com.logistica.demo.sharedkernel.web.PageResponse;
 import com.logistica.demo.shared.exception.BadRequestException;
 import com.logistica.demo.shared.report.PdfHeaderData;
 import com.logistica.demo.shared.report.PdfHeaderRequest;
@@ -27,7 +28,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/requerimientos")
+@RequestMapping({ApiPaths.LEGACY + "/requerimientos", ApiPaths.V1 + "/requerimientos"})
 public class RequerimientoController {
 
     private final RequerimientoService requerimientoService;
