@@ -8,6 +8,7 @@ import com.logistica.demo.maestros.dto.ProveedorCreateRequest;
 import com.logistica.demo.maestros.dto.ProveedorResponse;
 import com.logistica.demo.maestros.service.MaestrosCommandService;
 import com.logistica.demo.maestros.service.MaestrosQueryService;
+import com.logistica.demo.sharedkernel.web.ApiPaths;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,7 +20,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping({ApiPaths.LEGACY, ApiPaths.V1})
 public class MaestrosController {
 
     private final MaestrosQueryService maestrosQueryService;
