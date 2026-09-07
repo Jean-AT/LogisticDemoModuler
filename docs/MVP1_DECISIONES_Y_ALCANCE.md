@@ -21,9 +21,10 @@
 | DEC-015 | El proveedor se seleccionara durante la cotizacion/adjudicacion, no al crear el requerimiento. |
 | DEC-016 | Las operaciones criticas entre modulos seran sincronas y transaccionales dentro del monolito. |
 | DEC-017 | Eventos de dominio y Outbox se reservaran para auditoria, notificaciones e integraciones futuras. |
-| DEC-018 | El frontend Angular se compilara junto con el backend para producir un unico despliegue web. |
+| DEC-018 | Se terminara primero el backend; el frontend se implementara como una fase posterior. |
 | DEC-019 | IGV iniciara en 18%, pero se almacenara como parametro vigente y no como constante de negocio. |
 | DEC-020 | Zona horaria funcional: `America/Lima`; auditoria persistida como instante. |
+| DEC-021 | El antiguo directorio `frontend/` fue eliminado intencionalmente al consolidar repositorios y no se restaurara durante la fase backend. |
 
 ## Alcance incluido
 
@@ -74,7 +75,13 @@
 - SSO corporativo, microservicios, microfrontends, Kubernetes y Event Sourcing.
 - Alta disponibilidad productiva y migracion completa de la base legacy.
 
+## Orden de construccion
+
+1. Completar arquitectura, contratos y persistencia del backend.
+2. Completar Plataforma, Cuadro de Necesidades, Presupuesto y Logistica mediante API.
+3. Validar el flujo integral con pruebas de API y base de datos.
+4. Disenar e implementar el frontend sobre contratos `/api/v1` ya estabilizados.
+
 ## Condicion de cierre del MVP1
 
 El alcance se considera terminado cuando un usuario autorizado puede recorrer dos veces el flujo completo, sin cambios manuales en base de datos, sin duplicar documentos y conservando la trazabilidad de cantidades, presupuesto, orden, recepcion y stock.
-

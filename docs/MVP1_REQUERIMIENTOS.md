@@ -57,7 +57,7 @@
 
 | ID | Requerimiento |
 |---|---|
-| RNF-01 | Un solo artefacto desplegable para frontend y backend. |
+| RNF-01 | Un solo artefacto desplegable para el backend modular; el frontend se incorpora despues de estabilizar `/api/v1`. |
 | RNF-02 | Limites modulares verificados automaticamente con ArchUnit. |
 | RNF-03 | Migraciones PostgreSQL incrementales y repetibles en un entorno limpio. |
 | RNF-04 | Operaciones monetarias y cantidades sin tipos de punto flotante. |
@@ -67,4 +67,3 @@
 | RNF-08 | Logs estructurados con `traceId` y sin datos secretos. |
 | RNF-09 | OpenAPI actualizado y errores REST uniformes. |
 | RNF-10 | Pruebas con PostgreSQL real mediante Testcontainers y flujo E2E web. |
-

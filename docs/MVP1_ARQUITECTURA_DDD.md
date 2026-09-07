@@ -2,11 +2,11 @@
 
 ## Topologia
 
-El MVP1 tendra un solo despliegue de aplicacion y una base de datos PostgreSQL administrada:
+La fase actual tendra un solo despliegue backend y una base de datos PostgreSQL administrada:
 
-`Navegador -> Angular servido por Spring Boot -> API/aplicacion modular -> PostgreSQL`
+`Cliente HTTP -> API Spring Boot modular -> PostgreSQL`
 
-El Dockerfile compilara Angular y copiara su salida al artefacto Spring Boot. Esto elimina CORS en el despliegue integrado y mantiene un unico servicio computacional. PostgreSQL permanece como infraestructura independiente.
+El frontend se desarrollara despues de estabilizar el backend. Consumira `/api/v1` y podra desplegarse como contenido estatico o integrarse al artefacto Spring Boot sin cambiar los contratos de dominio. PostgreSQL permanece como infraestructura independiente.
 
 ## Modulos y dependencias
 
@@ -112,4 +112,3 @@ Los contratos criticos se invocan en el mismo proceso y participan en la transac
 - Logs estructurados con `traceId` y sin credenciales ni tokens.
 - Indices sobre compania, ejercicio, numero, estado, fechas y claves de relacion.
 - Reportes pesados y futuras integraciones se ejecutaran fuera de la transaccion HTTP.
-

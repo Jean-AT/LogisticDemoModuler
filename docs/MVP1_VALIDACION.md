@@ -43,8 +43,8 @@ El escenario debe ejecutarse dos veces con datos diferentes y sin intervencion m
 | Persistencia | Flyway, constraints, locking e indices usando PostgreSQL Testcontainers. |
 | API | Contratos `/api/v1`, errores ProblemDetail, paginacion y autorizacion. |
 | Arquitectura | Reglas ArchUnit y ausencia de ciclos/dependencias prohibidas. |
-| Frontend | Formularios, guards, estados, errores y permisos visibles. |
-| E2E | Flujo principal y casos negativos de mayor riesgo con Playwright. |
+| Frontend posterior | Formularios, guards, estados, errores y permisos visibles. |
+| E2E backend | Flujo principal y casos negativos mediante API y PostgreSQL. |
 | Migracion | Conteos, claves, montos, estados y consulta de documentos `LEGACY_DEMO`. |
 | Rendimiento | 150 sesiones, lecturas concurrentes y aprobaciones sobre lineas compartidas. |
 | Seguridad | Hash de passwords/tokens, revocacion, scopes, CORS y ausencia de secretos en logs. |
@@ -55,7 +55,7 @@ El escenario debe ejecutarse dos veces con datos diferentes y sin intervencion m
 - Cero recepciones superiores a la orden.
 - Cero duplicados producidos por reintentos.
 - Cero violaciones ArchUnit.
-- Cero pruebas backend/frontend/E2E fallidas en CI.
+- Cero pruebas backend y E2E de API fallidas en CI; las pruebas frontend se exigiran en su fase.
 - `p95 <= 2 s` para CRUD y consultas simples.
 - `p95 <= 5 s` para consultas agregadas del MVP.
 - Todas las listas grandes paginadas y sin consultas N+1 detectadas.
@@ -70,4 +70,3 @@ Una tarea no se completa hasta que:
 3. OpenAPI y modelos Angular coinciden.
 4. Los permisos se validan en backend, no solo en la interfaz.
 5. Los criterios del requisito asociado tienen evidencia automatizada o un guion de aceptacion reproducible.
-

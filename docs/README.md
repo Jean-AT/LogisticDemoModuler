@@ -37,8 +37,7 @@ El flujo demostrable del MVP1 sera:
 
 ## Estado inicial comprobado
 
-- Backend Spring Boot, Angular y PostgreSQL operativos como demo de Logistica.
+- Backend Spring Boot y PostgreSQL operativos como demo de Logistica.
 - Existen autenticacion JWT, maestros, requerimientos, aprobaciones, ordenes de compra y PDFs.
-- Las 19 pruebas backend actuales pasan con `mvn test`.
-- La ejecucion de pruebas Angular requiere corregir la configuracion/resolucion del entorno de test.
-
+- El frontend anterior fue eliminado intencionalmente; se reconstruira despues de completar el backend.
+- La suite backend se ejecuta con `mvn test`.
