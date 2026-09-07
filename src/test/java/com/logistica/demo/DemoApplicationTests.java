@@ -39,6 +39,34 @@ class DemoApplicationTests {
     }
 
     @Test
+    void shouldExposeVersionedApiAndProblemDetails() throws Exception {
+        HttpResponse<String> login = send(
+                "POST",
+                "/api/v1/auth/login",
+                "{\"username\":\"solicitante\",\"password\":\"demo123\"}",
+                null,
+                null);
+        assertEquals(200, login.statusCode());
+
+        HttpResponse<String> invalidRequest = send(
+                "GET",
+                "/api/v1/requerimientos?estado=ESTADO_INVALIDO",
+                null,
+                "solicitante",
+                "demo123");
+        JsonNode problem = objectMapper.readTree(invalidRequest.body());
+
+        assertEquals(400, invalidRequest.statusCode());
+        assertTrue(invalidRequest.headers().firstValue("Content-Type").orElse("")
+                .startsWith("application/problem+json"));
+        assertEquals("INVALID_PARAMETER", problem.get("code").asText());
+        assertEquals("Parametro 'estado' invalido.", problem.get("detail").asText());
+        assertEquals("/api/v1/requerimientos", problem.get("instance").asText());
+        assertTrue(problem.hasNonNull("traceId"));
+        assertTrue(problem.hasNonNull("timestamp"));
+    }
+
+    @Test
     void shouldCreateDraftRequisition() throws Exception {
         String requestBody = buildRequisitionRequest("PEN", 2, "150.50");
         HttpResponse<String> response = send("POST", "/api/requerimientos", requestBody, "solicitante", "demo123");
