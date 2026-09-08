@@ -13,7 +13,7 @@ Las tareas se ejecutan en el orden indicado. Una tarea posterior puede comenzar 
 | 005 | `ARC-004` Definir contratos de modulo, eventos, Outbox e idempotencia. | RNF-02, RNF-05 | ARC-003 | COMPLETADA |
 | 006 | `ARC-005` Agregar ArchUnit y reglas de dependencia. | RNF-02 | ARC-004 | COMPLETADA |
 | 007 | `ARC-006` Incorporar Actuator, perfiles y logs con `traceId`. | RNF-08 | ARC-003 | COMPLETADA |
-| 008 | `ARC-007` Crear estrategia Flyway `V4-V10` y validacion de migraciones. | RNF-03 | ARC-004 | PENDIENTE |
+| 008 | `ARC-007` Crear estrategia Flyway `V4-V10` y validacion de migraciones. | RNF-03 | ARC-004 | COMPLETADA |
 
 ## Fase 1 - Plataforma
 

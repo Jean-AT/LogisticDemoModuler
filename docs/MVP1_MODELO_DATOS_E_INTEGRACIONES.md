@@ -75,6 +75,8 @@
 
 Los documentos actuales migrados se identificaran como `LEGACY_DEMO`. Podran consultarse, pero no necesitaran inventar una relacion historica con Cuadro o Presupuesto. Todo documento nuevo exigira esas relaciones.
 
+La politica de inmutabilidad, responsables, despliegue y validacion de cada version se detalla en `MVP1_ESTRATEGIA_FLYWAY.md`.
+
 ## Integridad e idempotencia
 
 - Una consolidacion tiene como maximo una transferencia efectiva.
@@ -84,4 +86,3 @@ Los documentos actuales migrados se identificaran como `LEGACY_DEMO`. Podran con
 - Una recepcion no puede superar la cantidad pendiente de la orden.
 - Revertir una recepcion genera un movimiento opuesto; no elimina el original.
 - Los comandos repetidos con la misma clave devuelven el resultado original.
-

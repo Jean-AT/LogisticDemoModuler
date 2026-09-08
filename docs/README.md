@@ -42,3 +42,4 @@ El flujo demostrable del MVP1 sera:
 - Existen autenticacion JWT, maestros, requerimientos, aprobaciones, ordenes de compra y PDFs.
 - El frontend anterior fue eliminado intencionalmente; se reconstruira despues de completar el backend.
 - La suite backend se ejecuta con `mvn test`.
+- La estrategia y matriz de migraciones `V4-V10` estan en `MVP1_ESTRATEGIA_FLYWAY.md`.

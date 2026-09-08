@@ -74,3 +74,5 @@ Una tarea no se completa hasta que:
 La evidencia automatizada de `ARC-005` es `ModularArchitectureTest`, ejecutada como parte de la suite Maven.
 
 Para `ARC-006`, la suite verifica disponibilidad de Actuator y propagacion del mismo `traceId` entre cabecera y `ProblemDetail`.
+
+Para `ARC-007`, `PostgreSqlMigrationTest` ejecuta la cadena Flyway en PostgreSQL 16 desde una base vacia y desde `V1`; requiere Docker disponible.

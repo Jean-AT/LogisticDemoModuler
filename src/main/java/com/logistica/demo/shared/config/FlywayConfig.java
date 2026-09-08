@@ -22,6 +22,12 @@ public class FlywayConfig {
         return Flyway.configure()
                 .dataSource(dataSource)
                 .locations(locations)
+                .failOnMissingLocations(true)
+                .validateMigrationNaming(true)
+                .validateOnMigrate(true)
+                .baselineOnMigrate(false)
+                .outOfOrder(false)
+                .cleanDisabled(true)
                 .connectRetries(10)
                 .connectRetriesInterval(3)
                 .load();
