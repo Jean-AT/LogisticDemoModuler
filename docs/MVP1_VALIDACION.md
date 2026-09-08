@@ -72,3 +72,5 @@ Una tarea no se completa hasta que:
 5. Los criterios del requisito asociado tienen evidencia automatizada o un guion de aceptacion reproducible.
 
 La evidencia automatizada de `ARC-005` es `ModularArchitectureTest`, ejecutada como parte de la suite Maven.
+
+Para `ARC-006`, la suite verifica disponibilidad de Actuator y propagacion del mismo `traceId` entre cabecera y `ProblemDetail`.

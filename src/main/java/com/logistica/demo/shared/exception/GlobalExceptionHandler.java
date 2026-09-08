@@ -1,11 +1,11 @@
 package com.logistica.demo.shared.exception;
 
 import com.logistica.demo.auth.InvalidTokenException;
+import com.logistica.demo.shared.observability.TraceContext;
 import jakarta.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.time.Instant;
 import java.util.List;
-import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -150,7 +150,7 @@ public class GlobalExceptionHandler {
     }
 
     private String resolveTraceId(HttpServletRequest request) {
-        String traceId = request.getHeader("X-Trace-Id");
-        return traceId == null || traceId.isBlank() ? UUID.randomUUID().toString() : traceId.trim();
+        Object traceId = request.getAttribute(TraceContext.ATTRIBUTE_NAME);
+        return traceId == null ? "unavailable" : traceId.toString();
     }
 }

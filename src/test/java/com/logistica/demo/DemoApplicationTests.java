@@ -67,6 +67,40 @@ class DemoApplicationTests {
     }
 
     @Test
+    void shouldExposeHealthProbesWithoutAuthentication() throws Exception {
+        HttpResponse<String> response = send("GET", "/actuator/health", null, null, null);
+        JsonNode health = objectMapper.readTree(response.body());
+        HttpResponse<String> liveness = send("GET", "/actuator/health/liveness", null, null, null);
+        HttpResponse<String> readiness = send("GET", "/actuator/health/readiness", null, null, null);
+
+        assertEquals(200, response.statusCode());
+        assertEquals("UP", health.get("status").asText());
+        assertEquals(200, liveness.statusCode());
+        assertEquals(200, readiness.statusCode());
+        assertTrue(response.headers().firstValue("X-Trace-Id").isPresent());
+    }
+
+    @Test
+    void shouldPropagateTraceIdToResponseAndProblemDetail() throws Exception {
+        String traceId = "mvp1-arc006-test";
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:" + port + "/api/v1/requerimientos?estado=INVALIDO"))
+                .header("Authorization", basicAuth("solicitante", "demo123"))
+                .header("Accept", MediaType.APPLICATION_JSON_VALUE)
+                .header("X-Trace-Id", traceId)
+                .GET()
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient()
+                .send(request, HttpResponse.BodyHandlers.ofString());
+        JsonNode problem = objectMapper.readTree(response.body());
+
+        assertEquals(400, response.statusCode());
+        assertEquals(traceId, response.headers().firstValue("X-Trace-Id").orElseThrow());
+        assertEquals(traceId, problem.get("traceId").asText());
+    }
+
+    @Test
     void shouldCreateDraftRequisition() throws Exception {
         String requestBody = buildRequisitionRequest("PEN", 2, "150.50");
         HttpResponse<String> response = send("POST", "/api/requerimientos", requestBody, "solicitante", "demo123");

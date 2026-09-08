@@ -51,7 +51,9 @@ public class SecurityConfig {
                                 "/api/v1/auth/login",
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
-                                "/api-docs/**")
+                                "/api-docs/**",
+                                "/actuator/health",
+                                "/actuator/health/**")
                         .permitAll()
                         .anyRequest().authenticated())
                 .httpBasic(Customizer.withDefaults())

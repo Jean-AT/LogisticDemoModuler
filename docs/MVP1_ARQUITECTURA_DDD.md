@@ -121,7 +121,11 @@ Las interfaces y DTO exactos estan registrados en `MVP1_CONTRATOS_BACKEND.md`. S
 ## Operacion
 
 - Configuracion exclusivamente mediante variables de entorno.
-- Health/readiness mediante Spring Boot Actuator.
-- Logs estructurados con `traceId` y sin credenciales ni tokens.
+- Health, liveness y readiness mediante Spring Boot Actuator en `/actuator/health`.
+- Cada respuesta expone `X-Trace-Id`; el mismo valor se registra en MDC y en los errores `ProblemDetail`.
+- El perfil `dev` habilita OpenAPI y detalle de health autorizado; `prod` deshabilita OpenAPI y emite logs JSON Logstash.
+- Los endpoints Actuator publicados se limitan a `health` e `info`; solo health es publico.
 - Indices sobre compania, ejercicio, numero, estado, fechas y claves de relacion.
 - Reportes pesados y futuras integraciones se ejecutaran fuera de la transaccion HTTP.
+
+Los perfiles disponibles son `dev`, `test` y `prod`. Desarrollo `dev` conserva diagnostico detallado y OpenAPI; `prod` emite JSON Logstash, reduce el log de aplicacion a `INFO` y deshabilita OpenAPI. Actuator publica anonimamente solo `health`, `liveness` y `readiness`; el resto de endpoints expuestos requiere autenticacion.
