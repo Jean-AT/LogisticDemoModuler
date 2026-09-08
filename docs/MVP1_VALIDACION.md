@@ -70,3 +70,5 @@ Una tarea no se completa hasta que:
 3. OpenAPI y modelos Angular coinciden.
 4. Los permisos se validan en backend, no solo en la interfaz.
 5. Los criterios del requisito asociado tienen evidencia automatizada o un guion de aceptacion reproducible.
+
+La evidencia automatizada de `ARC-005` es `ModularArchitectureTest`, ejecutada como parte de la suite Maven.

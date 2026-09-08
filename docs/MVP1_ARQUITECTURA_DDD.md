@@ -84,6 +84,17 @@ com.logistica.demo
 - Anti-Corruption Layer para migrar registros de `logistica_demo`.
 - ArchUnit para verificar limites de paquetes.
 
+## Reglas automatizadas de arquitectura
+
+`ModularArchitectureTest` protege el grafo `sharedkernel -> platform -> cuadronecesidades -> presupuesto -> logistica` y valida que:
+
+- `sharedkernel` no dependa de modulos funcionales.
+- Un modulo no dependa de otro ubicado despues en el grafo.
+- `domain`, `application` e `infrastructure` sean privados al modulo propietario.
+- Los contratos publicados en `api` no dependan de Spring ni de JPA.
+
+Las reglas se ejecutan con `mvn test`. Los paquetes internos aun vacios permiten una evaluacion sin clases; la misma regla se activa automaticamente al incorporar implementaciones.
+
 ## Contratos internos
 
 - `PlatformCatalogQuery`: companias, centros, fuentes, metas, clasificadores y bienes vigentes.
