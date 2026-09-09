@@ -3,6 +3,9 @@ package com.logistica.demo.migration;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.sql.SQLException;
+import java.util.HashSet;
+import java.util.Set;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationVersion;
 import org.flywaydb.core.api.output.MigrateResult;
@@ -15,6 +18,29 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 class PostgreSqlMigrationTest {
 
     private static final String MIGRATION_LOCATION = "classpath:db/migration/postgresql";
+    private static final Set<String> PLATFORM_TABLES = Set.of(
+            "companies",
+            "organization_units",
+            "cost_centers",
+            "financing_sources",
+            "goals",
+            "activities",
+            "expense_classifiers",
+            "currencies",
+            "units_of_measure",
+            "catalog_items",
+            "users",
+            "roles",
+            "permissions",
+            "role_permissions",
+            "user_roles",
+            "user_scopes",
+            "refresh_tokens",
+            "fiscal_periods",
+            "document_sequences",
+            "audit_events",
+            "outbox_events",
+            "idempotency_keys");
 
     @Container
     static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16-alpine")
@@ -23,13 +49,14 @@ class PostgreSqlMigrationTest {
             .withPassword("migration_test");
 
     @Test
-    void shouldMigrateCleanDatabaseAndUpgradeFromPreviousVersion() {
+    void shouldMigrateCleanDatabaseAndUpgradeFromPreviousVersion() throws SQLException {
         Flyway latest = flyway(MigrationVersion.LATEST);
         latest.clean();
 
         MigrateResult cleanMigration = latest.migrate();
-        assertEquals(3, cleanMigration.migrationsExecuted);
+        assertTrue(cleanMigration.migrationsExecuted >= 4);
         assertTrue(latest.validateWithResult().validationSuccessful);
+        assertPlatformTablesExist();
 
         latest.clean();
         MigrateResult baselineMigration = flyway(MigrationVersion.fromVersion("1")).migrate();
@@ -37,8 +64,26 @@ class PostgreSqlMigrationTest {
 
         Flyway upgraded = flyway(MigrationVersion.LATEST);
         MigrateResult upgradeMigration = upgraded.migrate();
-        assertEquals(2, upgradeMigration.migrationsExecuted);
+        assertEquals(cleanMigration.migrationsExecuted - 1, upgradeMigration.migrationsExecuted);
         assertTrue(upgraded.validateWithResult().validationSuccessful);
+        assertPlatformTablesExist();
+    }
+
+    private void assertPlatformTablesExist() throws SQLException {
+        Set<String> actualTables = new HashSet<>();
+        try (var connection = POSTGRES.createConnection("");
+                var tables = connection.getMetaData().getTables(null, "platform", "%", new String[]{"TABLE"})) {
+            while (tables.next()) {
+                actualTables.add(tables.getString("TABLE_NAME"));
+            }
+        }
+        assertTrue(actualTables.containsAll(PLATFORM_TABLES), () -> "Faltan tablas: " + difference(PLATFORM_TABLES, actualTables));
+    }
+
+    private Set<String> difference(Set<String> expected, Set<String> actual) {
+        Set<String> missing = new HashSet<>(expected);
+        missing.removeAll(actual);
+        return missing;
     }
 
     private Flyway flyway(MigrationVersion target) {

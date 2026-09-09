@@ -10,6 +10,10 @@
 - `currencies`, `units_of_measure`, `catalog_items`.
 - `fiscal_periods`, `document_sequences`, `audit_events`, `outbox_events`, `idempotency_keys`.
 
+`V4__create_platform_schema.sql` crea estas 22 tablas. Las relaciones organizacionales usan claves compuestas con `company_id` para impedir referencias entre companias. Los maestros empleados por transacciones tienen `active`, auditoria y `version`; los periodos fiscales usan rangos y estados controlados, y los registros de Outbox/auditoria conservan contenido `JSONB`.
+
+`JdbcPlatformCatalogQuery` implementa el puerto publico de consulta sin exponer tablas ni modelos de persistencia. Solo devuelve companias, centros de costo, fuentes, metas, clasificadores y bienes activos; para centros tambien valida su vigencia por fecha.
+
 ### `cuadro`
 
 - `needs_plans`: cabecera por compania, ejercicio, centro, fuente y meta.

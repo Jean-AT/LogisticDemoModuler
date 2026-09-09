@@ -76,3 +76,5 @@ La evidencia automatizada de `ARC-005` es `ModularArchitectureTest`, ejecutada c
 Para `ARC-006`, la suite verifica disponibilidad de Actuator y propagacion del mismo `traceId` entre cabecera y `ProblemDetail`.
 
 Para `ARC-007`, `PostgreSqlMigrationTest` ejecuta la cadena Flyway en PostgreSQL 16 desde una base vacia y desde `V1`; requiere Docker disponible.
+
+Para `PLT-T01`, la misma prueba comprueba la existencia de las 22 tablas de `platform` despues de una instalacion limpia y de una actualizacion incremental. `MigrationCatalogTest` valida siempre que `V4` sea contigua, tenga nombre valido y contenga SQL.

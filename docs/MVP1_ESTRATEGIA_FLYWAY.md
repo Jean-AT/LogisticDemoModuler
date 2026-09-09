@@ -19,7 +19,7 @@ La cadena PostgreSQL es incremental, inmutable y reproducible desde una base vac
 
 | Version | Ticket propietario | Contenido | Validacion minima |
 |---|---|---|---|
-| `V4` | `PLT-T01` | Esquema `platform`, companias, estructura, maestros fiscales y catalogo. | PK, FK, unicidad por compania y catalogos activos. |
+| `V4` | `PLT-T01` | Esquema `platform`, maestros y tablas base de seguridad, periodos, auditoria e integracion. | 22 tablas, PK, FK, aislamiento por compania, checks e indices operativos. |
 | `V5` | `PLT-T05` | Migracion de usuarios/items legacy y catalogo demo anonimizado. | Conteos, claves legacy unicas y referencias resueltas. |
 | `V6` | `CN-T01` | Esquema `cuadro`, planes, lineas, meses, historial y consolidacion. | Mes `1-12`, montos/cantidades no negativos y unicidad anual. |
 | `V7` | `PRE-T01` | Esquema `presupuesto`, ejercicios, techos, lineas, movimientos y controles. | Dimensiones completas, movimientos append-only y saldos conciliables. |
