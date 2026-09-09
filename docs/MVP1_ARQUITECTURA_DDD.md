@@ -114,6 +114,8 @@ Las interfaces y DTO exactos estan registrados en `MVP1_CONTRATOS_BACKEND.md`. S
 - Paginacion: `content`, `page`, `size`, `totalElements`, `totalPages`.
 - Autenticacion: access token corto y refresh token revocable almacenado mediante hash.
 - Autorizacion: roles mas alcance por compania, unidad y centro de costo.
+- Un usuario puede acumular varios roles; los permisos se unen, pero cada permiso conserva los alcances de la asignacion que lo concede.
+- Las decisiones de alcance se centralizan en `AccessPolicy`; los modulos consumidores no consultan tablas de seguridad.
 - HTTP Basic se eliminara de la configuracion normal.
 - Swagger quedara habilitado solo en desarrollo/demo autenticada.
 - Acciones sensibles registraran usuario, rol efectivo, IP, fecha y cambio realizado.

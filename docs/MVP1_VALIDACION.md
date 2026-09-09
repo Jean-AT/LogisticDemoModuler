@@ -78,3 +78,5 @@ Para `ARC-006`, la suite verifica disponibilidad de Actuator y propagacion del m
 Para `ARC-007`, `PostgreSqlMigrationTest` ejecuta la cadena Flyway en PostgreSQL 16 desde una base vacia y desde `V1`; requiere Docker disponible.
 
 Para `PLT-T01`, la misma prueba comprueba la existencia de las 22 tablas de `platform` despues de una instalacion limpia y de una actualizacion incremental. `MigrationCatalogTest` valida siempre que `V4` sea contigua, tenga nombre valido y contenga SQL.
+
+Para `PLT-T02`, `UserAccessProfileTest` cubre union de roles/permisos, alcance por compania, unidad y centro, y rechazo de asignaciones entre companias. `CurrentUserServiceTest` conserva compatibilidad con varias autoridades Spring Security.

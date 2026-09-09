@@ -36,6 +36,16 @@ Un `IdempotencyClaim` puede quedar en `ACQUIRED`, `IN_PROGRESS` o `COMPLETED`. U
 
 Las ausencias se expresan con `Optional`; el modulo consumidor decide el error de negocio apropiado.
 
+`UserAccessQuery` publica el perfil activo con varias asignaciones `RoleGrant`. Cada asignacion contiene:
+
+- Codigo de rol y conjunto efectivo de permisos.
+- Uno o mas alcances por compania, unidad organizacional y centro de costo.
+- Semantica jerarquica: compania cubre todas sus unidades; unidad cubre sus centros; centro limita al identificador exacto.
+
+`AccessPolicy.isAllowed` evalua permiso y alcance en una sola operacion, devolviendo `false` para usuarios inactivos, permisos ausentes o dimensiones fuera de alcance.
+
+`UserRoleAdministration` permite asignar/reactivar un rol con varios alcances, revocarlo y reemplazar atomicamente sus permisos. Los contratos normalizan roles y permisos a mayusculas y rechazan alcances de otra compania.
+
 ## Cuadro de Necesidades
 
 `NeedsBalanceQuery.findAvailableLine(companyId, needsLineId)` devuelve:
@@ -71,6 +81,6 @@ Devuelve el identificador de transferencia, ejercicio de Unidades, cantidad de l
 
 Cada resultado identifica el control, estado, monto afectado y disponibilidad posterior. `BudgetMovementRegisteredEvent` comunica el movimiento confirmado para auditoria e integraciones futuras.
 
-## Persistencia pendiente
+## Persistencia compartida
 
-`OutboxPort` e `IdempotencyPort` son puertos en esta tarea. Sus adaptadores PostgreSQL, tablas, indices, expiracion y limpieza se implementaran en `ARC-007`, respetando las interfaces aqui definidas.
+Las tablas PostgreSQL de Outbox e idempotencia existen desde `V4`; sus adaptadores transaccionales se implementan en `PLT-T04`, respetando las interfaces aqui definidas.

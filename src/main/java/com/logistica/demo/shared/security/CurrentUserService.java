@@ -1,6 +1,8 @@
 package com.logistica.demo.shared.security;
 
 import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -15,18 +17,27 @@ public class CurrentUserService {
     }
 
     public UserRole getRole() {
-        return getAuthentication().getAuthorities().stream()
-                .map(authority -> authority.getAuthority())
-                .filter(authority -> authority.startsWith("ROLE_"))
-                .map(authority -> authority.substring("ROLE_".length()))
+        return getRoles().stream()
                 .findFirst()
-                .map(UserRole::valueOf)
                 .orElseThrow(() -> new AccessDeniedException("No tiene un rol valido."));
     }
 
+    public Set<UserRole> getRoles() {
+        Set<UserRole> roles = getAuthentication().getAuthorities().stream()
+                .map(authority -> authority.getAuthority())
+                .filter(authority -> authority.startsWith("ROLE_"))
+                .map(authority -> authority.substring("ROLE_".length()))
+                .map(UserRole::valueOf)
+                .collect(Collectors.toUnmodifiableSet());
+        if (roles.isEmpty()) {
+            throw new AccessDeniedException("No tiene un rol valido.");
+        }
+        return roles;
+    }
+
     public boolean hasAnyRole(UserRole... roles) {
-        UserRole currentRole = getRole();
-        return Arrays.stream(roles).anyMatch(role -> role == currentRole);
+        Set<UserRole> currentRoles = getRoles();
+        return Arrays.stream(roles).anyMatch(currentRoles::contains);
     }
 
     public boolean hasGlobalRequisitionAccess() {
