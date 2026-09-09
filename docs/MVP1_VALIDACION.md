@@ -80,3 +80,5 @@ Para `ARC-007`, `PostgreSqlMigrationTest` ejecuta la cadena Flyway en PostgreSQL
 Para `PLT-T01`, la misma prueba comprueba la existencia de las 22 tablas de `platform` despues de una instalacion limpia y de una actualizacion incremental. `MigrationCatalogTest` valida siempre que `V4` sea contigua, tenga nombre valido y contenga SQL.
 
 Para `PLT-T02`, `UserAccessProfileTest` cubre union de roles/permisos, alcance por compania, unidad y centro, y rechazo de asignaciones entre companias. `CurrentUserServiceTest` conserva compatibilidad con varias autoridades Spring Security.
+
+Para `PLT-T03`, `DemoApplicationTests` valida login BCrypt, acceso Bearer, perfil con roles/permisos/alcances, rechazo de HTTP Basic, rotacion de refresh token, rechazo de reutilizacion y revocacion por logout. La ejecucion de cierre fue de 48 pruebas: 47 correctas y una omitida porque Docker no estaba activo.

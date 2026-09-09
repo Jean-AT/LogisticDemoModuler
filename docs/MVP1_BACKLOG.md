@@ -21,7 +21,7 @@ Las tareas se ejecutan en el orden indicado. Una tarea posterior puede comenzar 
 |---:|---|---|---|---|
 | 101 | `PLT-T01` Crear esquema `platform` y maestros organizacionales/fiscales. | PLT-RF03, PLT-RF04, PLT-RF05 | ARC-007 | COMPLETADA |
 | 102 | `PLT-T02` Implementar roles multiples, permisos y alcances. | PLT-RF02 | PLT-T01 | COMPLETADA |
-| 103 | `PLT-T03` Reemplazar JWT manual, `{noop}` y HTTP Basic; agregar refresh/revocacion. | PLT-RF01 | PLT-T02 | PENDIENTE |
+| 103 | `PLT-T03` Reemplazar JWT manual, `{noop}` y HTTP Basic; agregar refresh/revocacion. | PLT-RF01 | PLT-T02 | COMPLETADA |
 | 104 | `PLT-T04` Implementar periodos, secuencias, auditoria y Outbox. | PLT-RF06, PLT-RF07 | PLT-T01, ARC-004 | PENDIENTE |
 | 105 | `PLT-T05` Migrar usuarios e items actuales y cargar catalogo representativo. | PLT-RF01, PLT-RF05 | PLT-T03, PLT-T04 | PENDIENTE |
 | 106 | `PLT-T06` Crear APIs `/api/v1/platform` y pantallas administrativas. | PLT-RF02-PLT-RF06 | PLT-T05 | PENDIENTE |

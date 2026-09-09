@@ -1,6 +1,5 @@
 package com.logistica.demo.shared.exception;
 
-import com.logistica.demo.auth.InvalidTokenException;
 import com.logistica.demo.shared.observability.TraceContext;
 import jakarta.servlet.http.HttpServletRequest;
 import java.net.URI;
@@ -25,11 +24,6 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 public class GlobalExceptionHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
-
-    @ExceptionHandler(InvalidTokenException.class)
-    public ResponseEntity<ProblemDetail> handleInvalidToken(InvalidTokenException ex, HttpServletRequest request) {
-        return buildResponse(HttpStatus.UNAUTHORIZED, "AUTH_TOKEN_INVALID", ex.getMessage(), request, List.of());
-    }
 
     @ExceptionHandler({BadCredentialsException.class, AuthenticationException.class})
     public ResponseEntity<ProblemDetail> handleBadCredentials(Exception ex, HttpServletRequest request) {

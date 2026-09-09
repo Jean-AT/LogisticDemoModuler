@@ -1,102 +1,49 @@
 package com.logistica.demo.auth;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.logistica.demo.shared.config.DemoJwtProperties;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.time.Instant;
-import java.util.Base64;
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
+import java.util.Set;
+import java.util.UUID;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 @Service
 public class JwtService {
 
-    private static final String ALGORITHM = "HmacSHA256";
-
     private final DemoJwtProperties properties;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final JwtEncoder jwtEncoder;
 
-    public JwtService(DemoJwtProperties properties) {
+    public JwtService(DemoJwtProperties properties, JwtEncoder jwtEncoder) {
         this.properties = properties;
+        this.jwtEncoder = jwtEncoder;
     }
 
-    public String generateToken(String username, String role, String fullName) {
-        Instant now = Instant.now();
-        Instant exp = now.plusMillis(properties.expirationMs());
-        try {
-            ObjectNode header = objectMapper.createObjectNode();
-            header.put("alg", "HS256");
-            header.put("typ", "JWT");
+    public String generateAccessToken(PlatformIdentity identity) {
+        Instant issuedAt = Instant.now();
+        Instant expiresAt = issuedAt.plusMillis(properties.expirationMs());
+        Set<String> roles = identity.accessProfile().roleCodes();
+        Set<String> permissions = identity.accessProfile().permissions();
 
-            ObjectNode payload = objectMapper.createObjectNode();
-            payload.put("sub", username);
-            payload.put("role", role);
-            payload.put("fullName", fullName);
-            payload.put("iat", now.getEpochSecond());
-            payload.put("exp", exp.getEpochSecond());
-
-            String encodedHeader = base64Url(objectMapper.writeValueAsBytes(header));
-            String encodedPayload = base64Url(objectMapper.writeValueAsBytes(payload));
-            String signingInput = encodedHeader + "." + encodedPayload;
-            String signature = sign(signingInput);
-            return signingInput + "." + signature;
-        } catch (JsonProcessingException ex) {
-            throw new IllegalStateException("No se pudo construir el token JWT.", ex);
-        }
+        JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).type("JWT").build();
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer(properties.issuer())
+                .subject(identity.username())
+                .id(UUID.randomUUID().toString())
+                .issuedAt(issuedAt)
+                .expiresAt(expiresAt)
+                .claim("name", identity.fullName())
+                .claim("roles", roles)
+                .claim("permissions", permissions)
+                .claim("token_type", "access")
+                .build();
+        return jwtEncoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
     }
 
-    public TokenClaims parseToken(String token) {
-        String[] parts = token.split("\\.");
-        if (parts.length != 3) {
-            throw new InvalidTokenException("Token JWT malformado.");
-        }
-        String signingInput = parts[0] + "." + parts[1];
-        String expectedSignature = sign(signingInput);
-        byte[] expected = expectedSignature.getBytes(StandardCharsets.UTF_8);
-        byte[] actual = parts[2].getBytes(StandardCharsets.UTF_8);
-        if (!MessageDigest.isEqual(expected, actual)) {
-            throw new InvalidTokenException("Firma del token JWT invalida.");
-        }
-        try {
-            byte[] payloadBytes = Base64.getUrlDecoder().decode(parts[1]);
-            JsonNode payload = objectMapper.readTree(payloadBytes);
-            long exp = payload.path("exp").asLong();
-            if (exp > 0 && exp < Instant.now().getEpochSecond()) {
-                throw new InvalidTokenException("El token JWT ha expirado.");
-            }
-            return new TokenClaims(
-                    payload.path("sub").asText(),
-                    payload.path("role").asText(),
-                    payload.path("fullName").asText());
-        } catch (IllegalArgumentException | java.io.IOException ex) {
-            throw new InvalidTokenException("No se pudo decodificar el token JWT.");
-        }
-    }
-
-    public String sign(String signingInput) {
-        try {
-            Mac mac = Mac.getInstance(ALGORITHM);
-            mac.init(new SecretKeySpec(properties.secret().getBytes(StandardCharsets.UTF_8), ALGORITHM));
-            return base64Url(mac.doFinal(signingInput.getBytes(StandardCharsets.UTF_8)));
-        } catch (Exception ex) {
-            throw new IllegalStateException("No se pudo firmar el token JWT.", ex);
-        }
-    }
-
-    private String base64Url(byte[] bytes) {
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-    }
-
-    public record TokenClaims(String username, String role, String fullName) {
-
-        public boolean isValid() {
-            return StringUtils.hasText(username) && StringUtils.hasText(role);
-        }
+    public long expirationSeconds() {
+        return properties.expirationMs() / 1000;
     }
 }

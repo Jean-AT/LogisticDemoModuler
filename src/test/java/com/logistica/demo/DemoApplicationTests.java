@@ -16,6 +16,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
@@ -30,6 +32,7 @@ import org.springframework.test.context.ActiveProfiles;
 class DemoApplicationTests {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final Map<String, String> accessTokens = new ConcurrentHashMap<>();
 
     @LocalServerPort
     private int port;
@@ -85,7 +88,7 @@ class DemoApplicationTests {
         String traceId = "mvp1-arc006-test";
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:" + port + "/api/v1/requerimientos?estado=INVALIDO"))
-                .header("Authorization", basicAuth("solicitante", "demo123"))
+                .header("Authorization", "Bearer " + accessToken("solicitante", "demo123"))
                 .header("Accept", MediaType.APPLICATION_JSON_VALUE)
                 .header("X-Trace-Id", traceId)
                 .GET()
@@ -549,11 +552,15 @@ class DemoApplicationTests {
         HttpResponse<String> login = send("POST", "/api/auth/login", "{\"username\":\"solicitante\",\"password\":\"demo123\"}", null, null);
         assertEquals(200, login.statusCode());
         JsonNode loginBody = objectMapper.readTree(login.body());
-        String token = loginBody.get("token").asText();
+        String token = loginBody.get("accessToken").asText();
         assertNotNull(token);
+        assertTrue(loginBody.get("refreshToken").asText().length() >= 32);
+        assertTrue(loginBody.get("expiresIn").asLong() > 0);
         assertEquals("Bearer", loginBody.get("tokenType").asText());
         assertEquals("solicitante", loginBody.get("user").get("username").asText());
-        assertEquals("SOLICITANTE", loginBody.get("user").get("role").asText());
+        assertTrue(loginBody.get("user").get("roles").toString().contains("SOLICITANTE"));
+        assertTrue(loginBody.get("user").get("permissions").isArray());
+        assertTrue(loginBody.get("user").get("scopes").isArray());
 
         HttpResponse<String> me = sendBearer("GET", "/api/auth/me", null, token);
         assertEquals(200, me.statusCode());
@@ -563,6 +570,48 @@ class DemoApplicationTests {
 
         HttpResponse<String> badLogin = send("POST", "/api/auth/login", "{\"username\":\"solicitante\",\"password\":\"incorrecto\"}", null, null);
         assertEquals(401, badLogin.statusCode());
+    }
+
+    @Test
+    void shouldRotateRefreshTokenAndRejectItsReuse() throws Exception {
+        JsonNode login = login("solicitante", "demo123");
+        String firstRefreshToken = login.get("refreshToken").asText();
+
+        HttpResponse<String> refresh = send(
+                "POST", "/api/v1/auth/refresh",
+                "{\"refreshToken\":\"" + firstRefreshToken + "\"}", null, null);
+        assertEquals(200, refresh.statusCode());
+        JsonNode refreshed = objectMapper.readTree(refresh.body());
+        assertNotNull(refreshed.get("accessToken").asText());
+        assertTrue(!firstRefreshToken.equals(refreshed.get("refreshToken").asText()));
+        assertEquals(200, sendBearer("GET", "/api/v1/auth/me", null, refreshed.get("accessToken").asText()).statusCode());
+
+        HttpResponse<String> reused = send(
+                "POST", "/api/v1/auth/refresh",
+                "{\"refreshToken\":\"" + firstRefreshToken + "\"}", null, null);
+        assertEquals(401, reused.statusCode());
+    }
+
+    @Test
+    void shouldRevokeRefreshTokenOnLogout() throws Exception {
+        String refreshToken = login("solicitante", "demo123").get("refreshToken").asText();
+        String request = "{\"refreshToken\":\"" + refreshToken + "\"}";
+
+        assertEquals(204, send("POST", "/api/v1/auth/logout", request, null, null).statusCode());
+        assertEquals(401, send("POST", "/api/v1/auth/refresh", request, null, null).statusCode());
+    }
+
+    @Test
+    void shouldRejectHttpBasicAuthentication() throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:" + port + "/api/v1/auth/me"))
+                .header("Authorization", basicAuth("solicitante", "demo123"))
+                .GET()
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient()
+                .send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(401, response.statusCode());
     }
 
     @Test
@@ -642,7 +691,7 @@ class DemoApplicationTests {
                 .header("Accept", MediaType.APPLICATION_JSON_VALUE);
 
         if (username != null) {
-            builder.header("Authorization", basicAuth(username, password));
+            builder.header("Authorization", "Bearer " + accessToken(username, password));
         }
 
         if (body != null) {
@@ -674,7 +723,7 @@ class DemoApplicationTests {
     private HttpResponse<byte[]> sendBytes(String method, String path, String body, String username, String password) throws Exception {
         HttpRequest.Builder builder = HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:" + port + path))
-                .header("Authorization", basicAuth(username, password))
+                .header("Authorization", "Bearer " + accessToken(username, password))
                 .header("Accept", MediaType.APPLICATION_PDF_VALUE);
 
         if (body != null) {
@@ -690,6 +739,34 @@ class DemoApplicationTests {
     private String basicAuth(String username, String password) {
         String token = username + ":" + password;
         return "Basic " + Base64.getEncoder().encodeToString(token.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private String accessToken(String username, String password) throws Exception {
+        String cacheKey = username + ":" + password;
+        String cached = accessTokens.get(cacheKey);
+        if (cached != null) {
+            return cached;
+        }
+        String token = login(username, password).get("accessToken").asText();
+        accessTokens.put(cacheKey, token);
+        return token;
+    }
+
+    private JsonNode login(String username, String password) throws Exception {
+        String body = objectMapper.createObjectNode()
+                .put("username", username)
+                .put("password", password)
+                .toString();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:" + port + "/api/v1/auth/login"))
+                .header("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                .header("Accept", MediaType.APPLICATION_JSON_VALUE)
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+        HttpResponse<String> response = HttpClient.newHttpClient()
+                .send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(200, response.statusCode());
+        return objectMapper.readTree(response.body());
     }
 
     private void assertDecimalEquals(String expected, JsonNode actual) {

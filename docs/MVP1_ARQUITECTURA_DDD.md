@@ -116,7 +116,9 @@ Las interfaces y DTO exactos estan registrados en `MVP1_CONTRATOS_BACKEND.md`. S
 - Autorizacion: roles mas alcance por compania, unidad y centro de costo.
 - Un usuario puede acumular varios roles; los permisos se unen, pero cada permiso conserva los alcances de la asignacion que lo concede.
 - Las decisiones de alcance se centralizan en `AccessPolicy`; los modulos consumidores no consultan tablas de seguridad.
-- HTTP Basic se eliminara de la configuracion normal.
+- Spring Security Resource Server valida JWT HS256 con emisor y expiracion; las autoridades se recargan desde Plataforma en cada solicitud.
+- Las passwords usan BCrypt con costo 12. HTTP Basic, `{noop}` y el filtro JWT manual quedaron eliminados.
+- Los refresh tokens son aleatorios, se almacenan solo mediante hash SHA-256 y rotan en cada renovacion; logout los revoca.
 - Swagger quedara habilitado solo en desarrollo/demo autenticada.
 - Acciones sensibles registraran usuario, rol efectivo, IP, fecha y cambio realizado.
 

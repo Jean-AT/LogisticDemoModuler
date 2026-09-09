@@ -57,6 +57,7 @@ class PostgreSqlMigrationTest {
         assertTrue(cleanMigration.migrationsExecuted >= 4);
         assertTrue(latest.validateWithResult().validationSuccessful);
         assertPlatformTablesExist();
+        assertPlatformSeedWasMigrated();
 
         latest.clean();
         MigrateResult baselineMigration = flyway(MigrationVersion.fromVersion("1")).migrate();
@@ -67,6 +68,7 @@ class PostgreSqlMigrationTest {
         assertEquals(cleanMigration.migrationsExecuted - 1, upgradeMigration.migrationsExecuted);
         assertTrue(upgraded.validateWithResult().validationSuccessful);
         assertPlatformTablesExist();
+        assertPlatformSeedWasMigrated();
     }
 
     private void assertPlatformTablesExist() throws SQLException {
@@ -84,6 +86,26 @@ class PostgreSqlMigrationTest {
         Set<String> missing = new HashSet<>(expected);
         missing.removeAll(actual);
         return missing;
+    }
+
+    private void assertPlatformSeedWasMigrated() throws SQLException {
+        try (var connection = POSTGRES.createConnection("");
+                var statement = connection.createStatement()) {
+            try (var result = statement.executeQuery(
+                    "SELECT COUNT(*) FROM platform.users WHERE password_hash LIKE '$2a$12$%'")) {
+                assertTrue(result.next());
+                assertEquals(4, result.getInt(1));
+            }
+            try (var result = statement.executeQuery(
+                    "SELECT COUNT(*) FROM logistica_demo.usuarios WHERE password LIKE '{noop}%'")) {
+                assertTrue(result.next());
+                assertEquals(0, result.getInt(1));
+            }
+            try (var result = statement.executeQuery("SELECT COUNT(*) FROM platform.catalog_items")) {
+                assertTrue(result.next());
+                assertEquals(3, result.getInt(1));
+            }
+        }
     }
 
     private Flyway flyway(MigrationVersion target) {

@@ -25,6 +25,17 @@ Un `IdempotencyClaim` puede quedar en `ACQUIRED`, `IN_PROGRESS` o `COMPLETED`. U
 
 ## Plataforma
 
+La autenticacion publica estos contratos bajo `/api/auth` y `/api/v1/auth`:
+
+| Metodo | Ruta | Resultado |
+|---|---|---|
+| `POST` | `/login` | Access token JWT corto, refresh token opaco, expiracion y perfil efectivo. |
+| `POST` | `/refresh` | Rota el refresh token y entrega un nuevo par; el token anterior deja de ser valido. |
+| `POST` | `/logout` | Revoca el refresh token y responde `204`. |
+| `GET` | `/me` | Usuario, roles, permisos y alcances vigentes leidos desde Plataforma. |
+
+HTTP Basic no forma parte del contrato. Los endpoints protegidos aceptan exclusivamente `Authorization: Bearer <accessToken>`.
+
 `PlatformCatalogQuery` publica consultas de referencias activas:
 
 - Compania.

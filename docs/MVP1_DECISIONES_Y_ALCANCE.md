@@ -25,6 +25,8 @@
 | DEC-019 | IGV iniciara en 18%, pero se almacenara como parametro vigente y no como constante de negocio. |
 | DEC-020 | Zona horaria funcional: `America/Lima`; auditoria persistida como instante. |
 | DEC-021 | El antiguo directorio `frontend/` fue eliminado intencionalmente al consolidar repositorios y no se restaurara durante la fase backend. |
+| DEC-022 | La autenticacion local usa Spring Security Resource Server, JWT HS256, BCrypt y refresh tokens opacos rotatorios almacenados mediante hash. |
+| DEC-023 | La migracion minima de identidades y catalogo prevista para `V5` se adelanta en `PLT-T03` porque la autenticacion ya depende del esquema `platform`; `PLT-T05` completara su validacion funcional. |
 
 ## Alcance incluido
 
