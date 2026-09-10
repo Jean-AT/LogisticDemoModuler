@@ -57,6 +57,12 @@ Las ausencias se expresan con `Optional`; el modulo consumidor decide el error d
 
 `UserRoleAdministration` permite asignar/reactivar un rol con varios alcances, revocarlo y reemplazar atomicamente sus permisos. Los contratos normalizan roles y permisos a mayusculas y rechazan alcances de otra compania.
 
+`FiscalPeriodQuery` y `FiscalPeriodAdministration` permiten definir, abrir, cerrar y exigir periodos fiscales abiertos por compania, ejercicio, mes y fecha funcional.
+
+`DocumentSequencePort` entrega numeros documentales transaccionales por compania, ejercicio y tipo, con prefijo configurable y valor incremental bloqueado en base de datos.
+
+`FunctionalAuditPort` registra auditoria funcional append-only con actor, rol efectivo, accion, agregado, `traceId`, IP y cambios serializados.
+
 ## Cuadro de Necesidades
 
 `NeedsBalanceQuery.findAvailableLine(companyId, needsLineId)` devuelve:
