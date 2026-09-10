@@ -12,6 +12,7 @@ import com.logistica.demo.platform.api.FiscalPeriodAdministration;
 import com.logistica.demo.platform.api.FiscalPeriodQuery;
 import com.logistica.demo.platform.api.FiscalPeriodStatus;
 import com.logistica.demo.platform.api.FunctionalAuditPort;
+import com.logistica.demo.platform.api.PlatformCatalogQuery;
 import com.logistica.demo.sharedkernel.event.DomainEvent;
 import com.logistica.demo.sharedkernel.event.OutboxPort;
 import com.logistica.demo.sharedkernel.idempotency.IdempotencyClaimStatus;
@@ -48,6 +49,9 @@ class PlatformOperationalAdaptersTest {
 
     @Autowired
     private IdempotencyPort idempotency;
+
+    @Autowired
+    private PlatformCatalogQuery catalogQuery;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -148,6 +152,31 @@ class PlatformOperationalAdaptersTest {
         assertThrows(
                 IllegalArgumentException.class,
                 () -> idempotency.acquire("budget.transfer", key, "hash-b", requestedAt));
+    }
+
+    @Test
+    void shouldExposeRepresentativePlatformCatalogReferences() {
+        Long costCenterId = jdbcTemplate.queryForObject(
+                "SELECT id FROM platform.cost_centers WHERE code = 'CC-LOG'",
+                Long.class);
+        Long financingSourceId = jdbcTemplate.queryForObject(
+                "SELECT id FROM platform.financing_sources WHERE code = 'RO'",
+                Long.class);
+        Long goalId = jdbcTemplate.queryForObject(
+                "SELECT id FROM platform.goals WHERE code = 'META-002'",
+                Long.class);
+        Long classifierId = jdbcTemplate.queryForObject(
+                "SELECT id FROM platform.expense_classifiers WHERE code = '2.6.3.2.1.2'",
+                Long.class);
+        Long catalogItemId = jdbcTemplate.queryForObject(
+                "SELECT id FROM platform.catalog_items WHERE code = 'ITM-001'",
+                Long.class);
+
+        assertTrue(catalogQuery.findActiveCostCenter(1L, costCenterId).isPresent());
+        assertTrue(catalogQuery.findActiveFinancingSource(financingSourceId).isPresent());
+        assertTrue(catalogQuery.findActiveGoal(goalId).isPresent());
+        assertTrue(catalogQuery.findActiveExpenseClassifier(classifierId).isPresent());
+        assertEquals("ITM-001", catalogQuery.findActiveCatalogItem(catalogItemId).orElseThrow().code());
     }
 
     record TestDomainEvent(UUID eventId, Instant occurredAt, Long aggregate, String message)

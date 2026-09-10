@@ -103,7 +103,17 @@ class PostgreSqlMigrationTest {
             }
             try (var result = statement.executeQuery("SELECT COUNT(*) FROM platform.catalog_items")) {
                 assertTrue(result.next());
-                assertEquals(3, result.getInt(1));
+                assertEquals(5, result.getInt(1));
+            }
+            try (var result = statement.executeQuery(
+                    "SELECT COUNT(*) FROM platform.catalog_items WHERE expense_classifier_id IS NULL")) {
+                assertTrue(result.next());
+                assertEquals(0, result.getInt(1));
+            }
+            try (var result = statement.executeQuery(
+                    "SELECT COUNT(*) FROM platform.cost_centers WHERE active = TRUE")) {
+                assertTrue(result.next());
+                assertEquals(2, result.getInt(1));
             }
         }
     }

@@ -14,6 +14,8 @@
 
 `JdbcPlatformCatalogQuery` implementa el puerto publico de consulta sin exponer tablas ni modelos de persistencia. Solo devuelve companias, centros de costo, fuentes, metas, clasificadores y bienes activos; para centros tambien valida su vigencia por fecha.
 
+PLT-T05 queda parcialmente implementada con la migracion de identidades legacy, roles, permisos, monedas, unidades de medida, centros de costo, fuentes, metas, actividades, clasificadores y cinco bienes/servicios representativos. La segunda mitad debe ampliar el catalogo funcional y exponer la administracion completa prevista en Plataforma.
+
 ### `cuadro`
 
 - `needs_plans`: cabecera por compania, ejercicio, centro, fuente y meta.

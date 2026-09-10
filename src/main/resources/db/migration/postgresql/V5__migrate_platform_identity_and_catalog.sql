@@ -72,6 +72,90 @@ INSERT INTO platform.user_scopes (
 SELECT ur.id, ur.company_id, NULL, NULL, 'system'
 FROM platform.user_roles ur;
 
+INSERT INTO platform.organization_units (
+    company_id, parent_id, code, name, unit_type, active, created_by, updated_by
+)
+SELECT c.id, NULL, 'GER-GRAL', 'Gerencia General', 'MANAGEMENT', TRUE, 'system', 'system'
+FROM platform.companies c
+WHERE c.code = 'DEMO';
+
+INSERT INTO platform.organization_units (
+    company_id, parent_id, code, name, unit_type, active, created_by, updated_by
+)
+SELECT c.id, parent.id, child.code, child.name, child.unit_type, TRUE, 'system', 'system'
+FROM platform.companies c
+JOIN platform.organization_units parent
+  ON parent.company_id = c.id
+ AND parent.code = 'GER-GRAL'
+CROSS JOIN (
+    VALUES
+        ('ADM', 'Administracion y Finanzas', 'ADMINISTRATION'),
+        ('LOG', 'Logistica y Abastecimiento', 'OPERATIONS')
+) AS child(code, name, unit_type)
+WHERE c.code = 'DEMO';
+
+INSERT INTO platform.cost_centers (
+    company_id, organization_unit_id, code, name, valid_from, active, created_by, updated_by
+)
+SELECT c.id, ou.id, seed.code, seed.name, DATE '2026-01-01', TRUE, 'system', 'system'
+FROM platform.companies c
+JOIN platform.organization_units ou ON ou.company_id = c.id
+JOIN (
+    VALUES
+        ('ADM', 'CC-ADM', 'Centro de costo Administracion'),
+        ('LOG', 'CC-LOG', 'Centro de costo Logistica')
+) AS seed(unit_code, code, name) ON seed.unit_code = ou.code
+WHERE c.code = 'DEMO';
+
+INSERT INTO platform.financing_sources (
+    company_id, code, name, active, created_by, updated_by
+)
+SELECT c.id, seed.code, seed.name, TRUE, 'system', 'system'
+FROM platform.companies c
+CROSS JOIN (
+    VALUES
+        ('RO', 'Recursos ordinarios'),
+        ('RDR', 'Recursos directamente recaudados')
+) AS seed(code, name)
+WHERE c.code = 'DEMO';
+
+INSERT INTO platform.goals (
+    company_id, fiscal_year, code, name, active, created_by, updated_by
+)
+SELECT c.id, 2026, seed.code, seed.name, TRUE, 'system', 'system'
+FROM platform.companies c
+CROSS JOIN (
+    VALUES
+        ('META-001', 'Gestion administrativa institucional'),
+        ('META-002', 'Abastecimiento oportuno de bienes y servicios')
+) AS seed(code, name)
+WHERE c.code = 'DEMO';
+
+INSERT INTO platform.activities (
+    company_id, fiscal_year, code, name, active, created_by, updated_by
+)
+SELECT c.id, 2026, seed.code, seed.name, TRUE, 'system', 'system'
+FROM platform.companies c
+CROSS JOIN (
+    VALUES
+        ('ACT-001', 'Operacion administrativa'),
+        ('ACT-002', 'Gestion de compras y almacenes')
+) AS seed(code, name)
+WHERE c.code = 'DEMO';
+
+INSERT INTO platform.expense_classifiers (
+    company_id, code, name, active, created_by, updated_by
+)
+SELECT c.id, seed.code, seed.name, TRUE, 'system', 'system'
+FROM platform.companies c
+CROSS JOIN (
+    VALUES
+        ('2.3.1.5.1.2', 'Papeleria en general, utiles y materiales de oficina'),
+        ('2.3.2.7.11.99', 'Servicios diversos'),
+        ('2.6.3.2.1.2', 'Mobiliario y equipos de oficina')
+) AS seed(code, name)
+WHERE c.code = 'DEMO';
+
 INSERT INTO platform.currencies (
     code, name, symbol, decimal_places, active, created_by, updated_by
 ) VALUES
@@ -81,14 +165,17 @@ INSERT INTO platform.currencies (
 INSERT INTO platform.units_of_measure (
     code, name, active, created_by, updated_by
 ) VALUES
-    ('UND', 'Unidad', TRUE, 'system', 'system');
+    ('UND', 'Unidad', TRUE, 'system', 'system'),
+    ('CAJA', 'Caja', TRUE, 'system', 'system'),
+    ('SERV', 'Servicio', TRUE, 'system', 'system');
 
 INSERT INTO platform.catalog_items (
-    company_id, unit_of_measure_id, code, name, item_type, active, created_by, updated_by
+    company_id, unit_of_measure_id, expense_classifier_id, code, name, item_type, active, created_by, updated_by
 )
 SELECT
     c.id,
     uom.id,
+    classifier.id,
     legacy_item.code,
     legacy_item.name,
     'GOOD',
@@ -98,5 +185,66 @@ SELECT
 FROM logistica_demo.items legacy_item
 CROSS JOIN platform.companies c
 CROSS JOIN platform.units_of_measure uom
+JOIN platform.expense_classifiers classifier
+  ON classifier.company_id = c.id
+ AND classifier.code = '2.6.3.2.1.2'
 WHERE c.code = 'DEMO'
   AND uom.code = 'UND';
+
+INSERT INTO platform.catalog_items (
+    company_id, unit_of_measure_id, expense_classifier_id, code, name, item_type, active, created_by, updated_by
+)
+SELECT c.id, uom.id, classifier.id, seed.code, seed.name, seed.item_type, TRUE, 'system', 'system'
+FROM platform.companies c
+JOIN (
+    VALUES
+        ('ITM-004', 'Papel bond A4 75g', 'GOOD', 'CAJA', '2.3.1.5.1.2'),
+        ('SERV-001', 'Mantenimiento preventivo de mobiliario', 'SERVICE', 'SERV', '2.3.2.7.11.99')
+) AS seed(code, name, item_type, unit_code, classifier_code) ON TRUE
+JOIN platform.units_of_measure uom ON uom.code = seed.unit_code
+JOIN platform.expense_classifiers classifier
+  ON classifier.company_id = c.id
+ AND classifier.code = seed.classifier_code
+WHERE c.code = 'DEMO';
+
+DO $$
+DECLARE
+    legacy_users_count INTEGER;
+    platform_users_count INTEGER;
+    legacy_items_count INTEGER;
+    migrated_items_count INTEGER;
+    unresolved_user_roles_count INTEGER;
+    catalog_without_classifier_count INTEGER;
+BEGIN
+    SELECT COUNT(*) INTO legacy_users_count FROM logistica_demo.usuarios;
+    SELECT COUNT(*) INTO platform_users_count FROM platform.users;
+    SELECT COUNT(*) INTO legacy_items_count FROM logistica_demo.items;
+    SELECT COUNT(*) INTO migrated_items_count
+    FROM platform.catalog_items catalog_item
+    JOIN logistica_demo.items legacy_item ON legacy_item.code = catalog_item.code;
+    SELECT COUNT(*) INTO unresolved_user_roles_count
+    FROM logistica_demo.usuarios legacy_user
+    LEFT JOIN platform.users platform_user ON platform_user.username = legacy_user.username
+    LEFT JOIN platform.user_roles user_role ON user_role.user_id = platform_user.id
+    WHERE user_role.id IS NULL;
+    SELECT COUNT(*) INTO catalog_without_classifier_count
+    FROM platform.catalog_items
+    WHERE expense_classifier_id IS NULL;
+
+    IF platform_users_count <> legacy_users_count THEN
+        RAISE EXCEPTION 'PLT-T05 validation failed: migrated users %, expected %',
+            platform_users_count, legacy_users_count;
+    END IF;
+    IF migrated_items_count <> legacy_items_count THEN
+        RAISE EXCEPTION 'PLT-T05 validation failed: migrated catalog items %, expected %',
+            migrated_items_count, legacy_items_count;
+    END IF;
+    IF unresolved_user_roles_count <> 0 THEN
+        RAISE EXCEPTION 'PLT-T05 validation failed: % users without platform role',
+            unresolved_user_roles_count;
+    END IF;
+    IF catalog_without_classifier_count <> 0 THEN
+        RAISE EXCEPTION 'PLT-T05 validation failed: % catalog items without classifier',
+            catalog_without_classifier_count;
+    END IF;
+END $$;
