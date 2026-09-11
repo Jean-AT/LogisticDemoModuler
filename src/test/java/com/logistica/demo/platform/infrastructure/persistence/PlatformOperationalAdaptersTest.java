@@ -177,6 +177,20 @@ class PlatformOperationalAdaptersTest {
         assertTrue(catalogQuery.findActiveGoal(goalId).isPresent());
         assertTrue(catalogQuery.findActiveExpenseClassifier(classifierId).isPresent());
         assertEquals("ITM-001", catalogQuery.findActiveCatalogItem(catalogItemId).orElseThrow().code());
+
+        var currency = catalogQuery.findActiveCurrency("pen").orElseThrow();
+        assertEquals("PEN", currency.code());
+        assertEquals(2, currency.decimalPlaces());
+
+        var unit = catalogQuery.findActiveUnitOfMeasure("serv").orElseThrow();
+        assertEquals("SERV", unit.code());
+
+        var service = catalogQuery.findActiveCatalogItemByCode(1L, "serv-002").orElseThrow();
+        assertEquals("SERVICE", service.itemType());
+        assertEquals("GLB", service.unitOfMeasure().code());
+        assertEquals("2.3.2.7.11.99", service.expenseClassifier().code());
+
+        assertEquals(10, catalogQuery.findActiveCatalogItems(1L).size());
     }
 
     record TestDomainEvent(UUID eventId, Instant occurredAt, Long aggregate, String message)

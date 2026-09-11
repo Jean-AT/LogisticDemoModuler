@@ -326,6 +326,10 @@ INSERT INTO platform.units_of_measure (code, name, active)
 VALUES
     ('UND', 'Unidad', TRUE),
     ('CAJA', 'Caja', TRUE),
+    ('PAQ', 'Paquete', TRUE),
+    ('GLB', 'Global', TRUE),
+    ('MTR', 'Metro', TRUE),
+    ('LTR', 'Litro', TRUE),
     ('SERV', 'Servicio', TRUE);
 
 INSERT INTO platform.catalog_items (
@@ -352,7 +356,12 @@ SELECT 1, uom.id, classifier.id, seed.code, seed.name, seed.item_type, TRUE
 FROM (
     VALUES
         ('ITM-004', 'Papel bond A4 75g', 'GOOD', 'CAJA', '2.3.1.5.1.2'),
-        ('SERV-001', 'Mantenimiento preventivo de mobiliario', 'SERVICE', 'SERV', '2.3.2.7.11.99')
+        ('ITM-005', 'Archivadores de palanca tamano oficio', 'GOOD', 'PAQ', '2.3.1.5.1.2'),
+        ('ITM-006', 'Toner para impresora laser', 'GOOD', 'UND', '2.3.1.5.1.2'),
+        ('ITM-007', 'Cable de red categoria 6', 'GOOD', 'MTR', '2.3.1.5.1.2'),
+        ('ITM-008', 'Alcohol liquido para limpieza', 'GOOD', 'LTR', '2.3.1.5.1.2'),
+        ('SERV-001', 'Mantenimiento preventivo de mobiliario', 'SERVICE', 'SERV', '2.3.2.7.11.99'),
+        ('SERV-002', 'Servicio de transporte local', 'SERVICE', 'GLB', '2.3.2.7.11.99')
 ) AS seed(code, name, item_type, unit_code, classifier_code)
 JOIN platform.units_of_measure uom ON uom.code = seed.unit_code
 JOIN platform.expense_classifiers classifier ON classifier.code = seed.classifier_code;

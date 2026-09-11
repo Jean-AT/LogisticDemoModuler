@@ -167,6 +167,10 @@ INSERT INTO platform.units_of_measure (
 ) VALUES
     ('UND', 'Unidad', TRUE, 'system', 'system'),
     ('CAJA', 'Caja', TRUE, 'system', 'system'),
+    ('PAQ', 'Paquete', TRUE, 'system', 'system'),
+    ('GLB', 'Global', TRUE, 'system', 'system'),
+    ('MTR', 'Metro', TRUE, 'system', 'system'),
+    ('LTR', 'Litro', TRUE, 'system', 'system'),
     ('SERV', 'Servicio', TRUE, 'system', 'system');
 
 INSERT INTO platform.catalog_items (
@@ -199,7 +203,12 @@ FROM platform.companies c
 JOIN (
     VALUES
         ('ITM-004', 'Papel bond A4 75g', 'GOOD', 'CAJA', '2.3.1.5.1.2'),
-        ('SERV-001', 'Mantenimiento preventivo de mobiliario', 'SERVICE', 'SERV', '2.3.2.7.11.99')
+        ('ITM-005', 'Archivadores de palanca tamano oficio', 'GOOD', 'PAQ', '2.3.1.5.1.2'),
+        ('ITM-006', 'Toner para impresora laser', 'GOOD', 'UND', '2.3.1.5.1.2'),
+        ('ITM-007', 'Cable de red categoria 6', 'GOOD', 'MTR', '2.3.1.5.1.2'),
+        ('ITM-008', 'Alcohol liquido para limpieza', 'GOOD', 'LTR', '2.3.1.5.1.2'),
+        ('SERV-001', 'Mantenimiento preventivo de mobiliario', 'SERVICE', 'SERV', '2.3.2.7.11.99'),
+        ('SERV-002', 'Servicio de transporte local', 'SERVICE', 'GLB', '2.3.2.7.11.99')
 ) AS seed(code, name, item_type, unit_code, classifier_code) ON TRUE
 JOIN platform.units_of_measure uom ON uom.code = seed.unit_code
 JOIN platform.expense_classifiers classifier
@@ -215,6 +224,9 @@ DECLARE
     migrated_items_count INTEGER;
     unresolved_user_roles_count INTEGER;
     catalog_without_classifier_count INTEGER;
+    representative_items_count INTEGER;
+    active_units_count INTEGER;
+    active_currencies_count INTEGER;
 BEGIN
     SELECT COUNT(*) INTO legacy_users_count FROM logistica_demo.usuarios;
     SELECT COUNT(*) INTO platform_users_count FROM platform.users;
@@ -230,6 +242,12 @@ BEGIN
     SELECT COUNT(*) INTO catalog_without_classifier_count
     FROM platform.catalog_items
     WHERE expense_classifier_id IS NULL;
+    SELECT COUNT(*) INTO representative_items_count
+    FROM platform.catalog_items
+    WHERE company_id = (SELECT id FROM platform.companies WHERE code = 'DEMO')
+      AND active = TRUE;
+    SELECT COUNT(*) INTO active_units_count FROM platform.units_of_measure WHERE active = TRUE;
+    SELECT COUNT(*) INTO active_currencies_count FROM platform.currencies WHERE active = TRUE;
 
     IF platform_users_count <> legacy_users_count THEN
         RAISE EXCEPTION 'PLT-T05 validation failed: migrated users %, expected %',
@@ -246,5 +264,17 @@ BEGIN
     IF catalog_without_classifier_count <> 0 THEN
         RAISE EXCEPTION 'PLT-T05 validation failed: % catalog items without classifier',
             catalog_without_classifier_count;
+    END IF;
+    IF representative_items_count < 10 THEN
+        RAISE EXCEPTION 'PLT-T05 validation failed: representative catalog has only % active items',
+            representative_items_count;
+    END IF;
+    IF active_units_count < 7 THEN
+        RAISE EXCEPTION 'PLT-T05 validation failed: expected at least 7 active units, got %',
+            active_units_count;
+    END IF;
+    IF active_currencies_count <> 2 THEN
+        RAISE EXCEPTION 'PLT-T05 validation failed: expected 2 active currencies, got %',
+            active_currencies_count;
     END IF;
 END $$;

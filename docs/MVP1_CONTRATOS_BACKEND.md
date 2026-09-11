@@ -44,6 +44,9 @@ HTTP Basic no forma parte del contrato. Los endpoints protegidos aceptan exclusi
 - Meta.
 - Clasificador de gasto.
 - Bien del catalogo corporativo.
+- Moneda por codigo.
+- Unidad de medida por codigo.
+- Bien/servicio por codigo y listado activo por compania, incluyendo unidad y clasificador.
 
 Las ausencias se expresan con `Optional`; el modulo consumidor decide el error de negocio apropiado.
 
