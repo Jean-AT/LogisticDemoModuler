@@ -53,4 +53,16 @@ class MigrationCatalogTest {
                 versions,
                 "La cadena Flyway debe ser contigua");
     }
+
+    @Test
+    void shouldKeepPlatformCatalogSeedAndValidationInV5() throws IOException {
+        String sql = Files.readString(MIGRATION_DIRECTORY.resolve("V5__migrate_platform_identity_and_catalog.sql"));
+
+        assertTrue(sql.contains("PLT-T05 validation failed"));
+        assertTrue(sql.contains("representative_items_count"));
+        assertTrue(sql.contains("catalog_without_classifier_count"));
+        assertTrue(sql.contains("SERV-002"));
+        assertTrue(sql.contains("META-002"));
+        assertTrue(sql.contains("2.3.2.7.11.99"));
+    }
 }

@@ -32,6 +32,17 @@ public class JdbcPlatformCatalogQuery implements PlatformCatalogQuery {
     }
 
     @Override
+    public List<MasterDataReference> findActiveCompanies() {
+        return findMany(
+                """
+                SELECT id, code, legal_name AS name, active
+                FROM platform.companies
+                WHERE active = TRUE
+                ORDER BY code
+                """);
+    }
+
+    @Override
     public Optional<MasterDataReference> findActiveCostCenter(Long companyId, Long costCenterId) {
         return findOne(
                 """
@@ -48,6 +59,24 @@ public class JdbcPlatformCatalogQuery implements PlatformCatalogQuery {
     }
 
     @Override
+    public List<MasterDataReference> findActiveCostCenters(Long companyId) {
+        if (companyId == null || companyId <= 0) {
+            return List.of();
+        }
+        return findMany(
+                """
+                SELECT id, code, name, active
+                FROM platform.cost_centers
+                WHERE company_id = ?
+                  AND active = TRUE
+                  AND (valid_from IS NULL OR valid_from <= CURRENT_DATE)
+                  AND (valid_to IS NULL OR valid_to >= CURRENT_DATE)
+                ORDER BY code
+                """,
+                companyId);
+    }
+
+    @Override
     public Optional<MasterDataReference> findActiveFinancingSource(Long financingSourceId) {
         return findOne(
                 """
@@ -56,6 +85,21 @@ public class JdbcPlatformCatalogQuery implements PlatformCatalogQuery {
                 WHERE id = ? AND active = TRUE
                 """,
                 financingSourceId);
+    }
+
+    @Override
+    public List<MasterDataReference> findActiveFinancingSources(Long companyId) {
+        if (companyId == null || companyId <= 0) {
+            return List.of();
+        }
+        return findMany(
+                """
+                SELECT id, code, name, active
+                FROM platform.financing_sources
+                WHERE company_id = ? AND active = TRUE
+                ORDER BY code
+                """,
+                companyId);
     }
 
     @Override
@@ -70,6 +114,22 @@ public class JdbcPlatformCatalogQuery implements PlatformCatalogQuery {
     }
 
     @Override
+    public List<MasterDataReference> findActiveGoals(Long companyId, int fiscalYear) {
+        if (companyId == null || companyId <= 0) {
+            return List.of();
+        }
+        return findMany(
+                """
+                SELECT id, code, name, active
+                FROM platform.goals
+                WHERE company_id = ? AND fiscal_year = ? AND active = TRUE
+                ORDER BY code
+                """,
+                companyId,
+                fiscalYear);
+    }
+
+    @Override
     public Optional<MasterDataReference> findActiveExpenseClassifier(Long expenseClassifierId) {
         return findOne(
                 """
@@ -78,6 +138,21 @@ public class JdbcPlatformCatalogQuery implements PlatformCatalogQuery {
                 WHERE id = ? AND active = TRUE
                 """,
                 expenseClassifierId);
+    }
+
+    @Override
+    public List<MasterDataReference> findActiveExpenseClassifiers(Long companyId) {
+        if (companyId == null || companyId <= 0) {
+            return List.of();
+        }
+        return findMany(
+                """
+                SELECT id, code, name, active
+                FROM platform.expense_classifiers
+                WHERE company_id = ? AND active = TRUE
+                ORDER BY code
+                """,
+                companyId);
     }
 
     @Override
@@ -92,6 +167,10 @@ public class JdbcPlatformCatalogQuery implements PlatformCatalogQuery {
     }
 
     private Optional<MasterDataReference> findOne(String sql, Object... parameters) {
+        return findMany(sql, parameters).stream().findFirst();
+    }
+
+    private List<MasterDataReference> findMany(String sql, Object... parameters) {
         return jdbcTemplate.query(
                         sql,
                         (resultSet, rowNumber) -> new MasterDataReference(
@@ -101,7 +180,7 @@ public class JdbcPlatformCatalogQuery implements PlatformCatalogQuery {
                                 resultSet.getBoolean("active")),
                         parameters)
                 .stream()
-                .findFirst();
+                .toList();
     }
 
     @Override

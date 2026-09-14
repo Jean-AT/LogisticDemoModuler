@@ -24,8 +24,8 @@ Las tareas se ejecutan en el orden indicado. Una tarea posterior puede comenzar 
 | 103 | `PLT-T03` Reemplazar JWT manual, `{noop}` y HTTP Basic; agregar refresh/revocacion. | PLT-RF01 | PLT-T02 | COMPLETADA |
 | 104 | `PLT-T04` Implementar periodos, secuencias, auditoria y Outbox. | PLT-RF06, PLT-RF07 | PLT-T01, ARC-004 | COMPLETADA |
 | 105 | `PLT-T05` Migrar usuarios e items actuales y cargar catalogo representativo. | PLT-RF01, PLT-RF05 | PLT-T03, PLT-T04 | COMPLETADA |
-| 106 | `PLT-T06` Crear APIs `/api/v1/platform` y pantallas administrativas. | PLT-RF02-PLT-RF06 | PLT-T05 | PENDIENTE |
-| 107 | `PLT-T07` Agregar pruebas de seguridad, alcance, maestros y migracion. | PLT-RF01-PLT-RF07 | PLT-T06 | PENDIENTE |
+| 106 | `PLT-T06` Crear APIs `/api/v1/platform` y pantallas administrativas. | PLT-RF02-PLT-RF06 | PLT-T05 | COMPLETADA |
+| 107 | `PLT-T07` Agregar pruebas de seguridad, alcance, maestros y migracion. | PLT-RF01-PLT-RF07 | PLT-T06 | COMPLETADA |
 
 ## Fase 2 - Cuadro de Necesidades
 

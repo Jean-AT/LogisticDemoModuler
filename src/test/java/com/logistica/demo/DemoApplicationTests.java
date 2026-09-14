@@ -677,6 +677,118 @@ class DemoApplicationTests {
         assertTrue(body.get("miActividad").has("total"));
     }
 
+    @Test
+    void shouldExposePlatformAdministrationApi() throws Exception {
+        HttpResponse<String> items = send(
+                "GET",
+                "/api/v1/platform/catalog/items?companyId=1",
+                null,
+                "solicitante",
+                "demo123");
+        assertEquals(200, items.statusCode());
+        JsonNode itemsBody = objectMapper.readTree(items.body());
+        assertEquals(10, itemsBody.size());
+        assertEquals("ITM-001", itemsBody.get(0).get("code").asText());
+        assertTrue(itemsBody.get(0).has("unitOfMeasure"));
+        assertTrue(itemsBody.get(0).has("expenseClassifier"));
+
+        HttpResponse<String> service = send(
+                "GET",
+                "/api/v1/platform/catalog/items/serv-002?companyId=1",
+                null,
+                "solicitante",
+                "demo123");
+        assertEquals(200, service.statusCode());
+        JsonNode serviceBody = objectMapper.readTree(service.body());
+        assertEquals("SERVICE", serviceBody.get("itemType").asText());
+        assertEquals("GLB", serviceBody.get("unitOfMeasure").get("code").asText());
+
+        HttpResponse<String> forbiddenWrite = send(
+                "PUT",
+                "/api/v1/platform/fiscal-periods",
+                "{\"companyId\":1,\"fiscalYear\":2026,\"month\":10,"
+                        + "\"startsOn\":\"2026-10-01\",\"endsOn\":\"2026-10-31\",\"status\":\"OPEN\"}",
+                "solicitante",
+                "demo123");
+        assertEquals(403, forbiddenWrite.statusCode());
+
+        HttpResponse<String> definedPeriod = send(
+                "PUT",
+                "/api/v1/platform/fiscal-periods",
+                "{\"companyId\":1,\"fiscalYear\":2026,\"month\":10,"
+                        + "\"startsOn\":\"2026-10-01\",\"endsOn\":\"2026-10-31\",\"status\":\"OPEN\"}",
+                "admin",
+                "demo123");
+        assertEquals(200, definedPeriod.statusCode());
+        assertEquals("OPEN", objectMapper.readTree(definedPeriod.body()).get("status").asText());
+
+        HttpResponse<String> closePeriod = send(
+                "POST",
+                "/api/v1/platform/fiscal-periods/1/2026/10/close",
+                null,
+                "admin",
+                "demo123");
+        assertEquals(200, closePeriod.statusCode());
+        assertEquals("CLOSED", objectMapper.readTree(closePeriod.body()).get("status").asText());
+
+        HttpResponse<String> configureSequence = send(
+                "PUT",
+                "/api/v1/platform/document-sequences",
+                "{\"companyId\":1,\"fiscalYear\":2026,\"documentType\":\"REQ\",\"prefix\":\"REQ-2026\",\"currentValue\":99}",
+                "admin",
+                "demo123");
+        assertEquals(204, configureSequence.statusCode());
+
+        HttpResponse<String> nextNumber = send(
+                "POST",
+                "/api/v1/platform/document-sequences/next",
+                "{\"companyId\":1,\"fiscalYear\":2026,\"documentType\":\"REQ\"}",
+                "admin",
+                "demo123");
+        assertEquals(200, nextNumber.statusCode());
+        assertEquals("REQ-2026-000100", objectMapper.readTree(nextNumber.body()).get("formatted").asText());
+
+        HttpResponse<String> access = send(
+                "GET",
+                "/api/v1/platform/security/users/solicitante/access",
+                null,
+                "admin",
+                "demo123");
+        assertEquals(200, access.statusCode());
+        JsonNode accessBody = objectMapper.readTree(access.body());
+        assertEquals("solicitante", accessBody.get("username").asText());
+        assertTrue(accessBody.get("grants").toString().contains("PLATFORM.MASTER.READ"));
+    }
+
+    @Test
+    void shouldEnforcePlatformAdministrationSecurityAndValidation() throws Exception {
+        HttpResponse<String> anonymous = send(
+                "GET",
+                "/api/v1/platform/catalog/items?companyId=1",
+                null,
+                null,
+                null);
+        assertEquals(401, anonymous.statusCode());
+
+        HttpResponse<String> forbiddenSecurityRead = send(
+                "GET",
+                "/api/v1/platform/security/users/admin/access",
+                null,
+                "solicitante",
+                "demo123");
+        assertEquals(403, forbiddenSecurityRead.statusCode());
+
+        HttpResponse<String> invalidPeriodLookup = send(
+                "GET",
+                "/api/v1/platform/fiscal-periods?companyId=1",
+                null,
+                "admin",
+                "demo123");
+        assertEquals(400, invalidPeriodLookup.statusCode());
+        JsonNode problem = objectMapper.readTree(invalidPeriodLookup.body());
+        assertEquals("BAD_REQUEST", problem.get("code").asText());
+    }
+
     private long firstId(String path) throws Exception {
         HttpResponse<String> response = send("GET", path, null, "solicitante", "demo123");
         assertEquals(200, response.statusCode());

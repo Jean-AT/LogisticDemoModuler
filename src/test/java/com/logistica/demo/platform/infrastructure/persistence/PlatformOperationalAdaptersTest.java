@@ -1,10 +1,12 @@
 package com.logistica.demo.platform.infrastructure.persistence;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.logistica.demo.platform.api.AccessPolicy;
 import com.logistica.demo.platform.api.AuditEventCommand;
 import com.logistica.demo.platform.api.DefineFiscalPeriodCommand;
 import com.logistica.demo.platform.api.DocumentSequencePort;
@@ -13,6 +15,7 @@ import com.logistica.demo.platform.api.FiscalPeriodQuery;
 import com.logistica.demo.platform.api.FiscalPeriodStatus;
 import com.logistica.demo.platform.api.FunctionalAuditPort;
 import com.logistica.demo.platform.api.PlatformCatalogQuery;
+import com.logistica.demo.platform.api.UserAccessQuery;
 import com.logistica.demo.sharedkernel.event.DomainEvent;
 import com.logistica.demo.sharedkernel.event.OutboxPort;
 import com.logistica.demo.sharedkernel.idempotency.IdempotencyClaimStatus;
@@ -52,6 +55,12 @@ class PlatformOperationalAdaptersTest {
 
     @Autowired
     private PlatformCatalogQuery catalogQuery;
+
+    @Autowired
+    private AccessPolicy accessPolicy;
+
+    @Autowired
+    private UserAccessQuery userAccessQuery;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -191,6 +200,43 @@ class PlatformOperationalAdaptersTest {
         assertEquals("2.3.2.7.11.99", service.expenseClassifier().code());
 
         assertEquals(10, catalogQuery.findActiveCatalogItems(1L).size());
+        assertEquals(1, catalogQuery.findActiveCompanies().size());
+        assertEquals(2, catalogQuery.findActiveCostCenters(1L).size());
+        assertTrue(catalogQuery.findActiveCostCenters(999L).isEmpty());
+        assertTrue(catalogQuery.findActiveCatalogItemByCode(1L, "missing").isEmpty());
+    }
+
+    @Test
+    void shouldApplySeededSecurityScopesAndPermissions() {
+        assertTrue(accessPolicy.isAllowed(
+                "solicitante",
+                "logistica.requisition.write",
+                1L,
+                null,
+                null));
+        assertFalse(accessPolicy.isAllowed(
+                "solicitante",
+                "LOGISTICA.REQUISITION.WRITE",
+                2L,
+                null,
+                null));
+        assertFalse(accessPolicy.isAllowed(
+                "solicitante",
+                "PLATFORM.SECURITY.WRITE",
+                1L,
+                null,
+                null));
+        assertFalse(accessPolicy.isAllowed(
+                "usuario-inexistente",
+                "PLATFORM.MASTER.READ",
+                1L,
+                null,
+                null));
+
+        var admin = userAccessQuery.findActiveByUsername("admin").orElseThrow();
+        assertTrue(admin.hasRole("ADMIN"));
+        assertTrue(admin.permissions().contains("PLATFORM.SECURITY.WRITE"));
+        assertTrue(admin.canAccess("PLATFORM.MASTER.WRITE", 1L, null, null));
     }
 
     record TestDomainEvent(UUID eventId, Instant occurredAt, Long aggregate, String message)

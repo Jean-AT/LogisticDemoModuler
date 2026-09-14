@@ -77,8 +77,16 @@ Para `ARC-006`, la suite verifica disponibilidad de Actuator y propagacion del m
 
 Para `ARC-007`, `PostgreSqlMigrationTest` ejecuta la cadena Flyway en PostgreSQL 16 desde una base vacia y desde `V1`; requiere Docker disponible.
 
-Para `PLT-T01`, la misma prueba comprueba la existencia de las 22 tablas de `platform` despues de una instalacion limpia y de una actualizacion incremental. `MigrationCatalogTest` valida siempre que `V4` sea contigua, tenga nombre valido y contenga SQL.
+Para `PLT-T01`, la misma prueba comprueba la existencia de las 22 tablas de `platform` despues de una instalacion limpia y de una actualizacion incremental. `MigrationCatalogTest` valida siempre que la cadena Flyway sea contigua, tenga nombres validos y contenga SQL.
 
 Para `PLT-T02`, `UserAccessProfileTest` cubre union de roles/permisos, alcance por compania, unidad y centro, y rechazo de asignaciones entre companias. `CurrentUserServiceTest` conserva compatibilidad con varias autoridades Spring Security.
 
 Para `PLT-T03`, `DemoApplicationTests` valida login BCrypt, acceso Bearer, perfil con roles/permisos/alcances, rechazo de HTTP Basic, rotacion de refresh token, rechazo de reutilizacion y revocacion por logout. La ejecucion de cierre fue de 48 pruebas: 47 correctas y una omitida porque Docker no estaba activo.
+
+Para `PLT-T04`, `PlatformOperationalAdaptersTest` cubre periodos fiscales abiertos/cerrados, secuencias documentales por compania/anio/tipo, auditoria funcional, Outbox e idempotencia con replay y rechazo de payload conflictivo.
+
+Para `PLT-T05`, `PostgreSqlMigrationTest` verifica conteos del catalogo representativo cuando Docker esta disponible, y `MigrationCatalogTest` protege que `V5` conserve validaciones de seed, items, metas y clasificadores. `PlatformOperationalAdaptersTest` comprueba consultas activas de companias, centros de costo, monedas, unidades, clasificadores, bienes y servicios.
+
+Para `PLT-T06`, `DemoApplicationTests` valida los endpoints `/api/v1/platform` para maestros, seguridad, periodos y secuencias, incluyendo lectura permitida para `solicitante` y escritura permitida solo para `admin`.
+
+Para `PLT-T07`, la suite agrega casos negativos de API sin autenticacion, lectura de seguridad sin permiso, selector invalido de periodo fiscal, permisos fuera de alcance de compania, usuario inexistente y consultas maestras sin resultados. La ejecucion de cierre fue de 58 pruebas: 57 correctas y una omitida porque Docker no estaba activo.

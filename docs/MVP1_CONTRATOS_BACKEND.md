@@ -66,6 +66,28 @@ Las ausencias se expresan con `Optional`; el modulo consumidor decide el error d
 
 `FunctionalAuditPort` registra auditoria funcional append-only con actor, rol efectivo, accion, agregado, `traceId`, IP y cambios serializados.
 
+La superficie administrativa versionada de Plataforma se publica bajo `/api/v1/platform`:
+
+| Metodo | Ruta | Permiso |
+|---|---|---|
+| `GET` | `/catalog/companies` | `PLATFORM.MASTER.READ` |
+| `GET` | `/catalog/companies/{companyId}` | `PLATFORM.MASTER.READ` |
+| `GET` | `/catalog/cost-centers?companyId=` | `PLATFORM.MASTER.READ` |
+| `GET` | `/catalog/financing-sources?companyId=` | `PLATFORM.MASTER.READ` |
+| `GET` | `/catalog/goals?companyId=&fiscalYear=` | `PLATFORM.MASTER.READ` |
+| `GET` | `/catalog/expense-classifiers?companyId=` | `PLATFORM.MASTER.READ` |
+| `GET` | `/catalog/items?companyId=` | `PLATFORM.MASTER.READ` |
+| `GET` | `/catalog/items/{itemCode}?companyId=` | `PLATFORM.MASTER.READ` |
+| `GET` | `/catalog/currencies/{currencyCode}` | `PLATFORM.MASTER.READ` |
+| `GET` | `/catalog/units/{unitCode}` | `PLATFORM.MASTER.READ` |
+| `GET` | `/security/users/{username}/access` | `PLATFORM.SECURITY.WRITE` |
+| `GET` | `/fiscal-periods?companyId=&date=` o `fiscalYear=&month=` | `PLATFORM.MASTER.READ` |
+| `PUT` | `/fiscal-periods` | `PLATFORM.MASTER.WRITE` |
+| `POST` | `/fiscal-periods/{companyId}/{fiscalYear}/{month}/open` | `PLATFORM.MASTER.WRITE` |
+| `POST` | `/fiscal-periods/{companyId}/{fiscalYear}/{month}/close` | `PLATFORM.MASTER.WRITE` |
+| `PUT` | `/document-sequences` | `PLATFORM.MASTER.WRITE` |
+| `POST` | `/document-sequences/next` | `PLATFORM.MASTER.WRITE` |
+
 ## Cuadro de Necesidades
 
 `NeedsBalanceQuery.findAvailableLine(companyId, needsLineId)` devuelve:
