@@ -41,6 +41,10 @@ class PostgreSqlMigrationTest {
             "audit_events",
             "outbox_events",
             "idempotency_keys");
+    private static final Set<String> NEEDS_TABLES = Set.of(
+            "needs_plans",
+            "need_lines",
+            "monthly_needs");
 
     @Container
     static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16-alpine")
@@ -57,6 +61,7 @@ class PostgreSqlMigrationTest {
         assertTrue(cleanMigration.migrationsExecuted >= 4);
         assertTrue(latest.validateWithResult().validationSuccessful);
         assertPlatformTablesExist();
+        assertNeedsTablesExist();
         assertPlatformSeedWasMigrated();
 
         latest.clean();
@@ -68,6 +73,7 @@ class PostgreSqlMigrationTest {
         assertEquals(cleanMigration.migrationsExecuted - 1, upgradeMigration.migrationsExecuted);
         assertTrue(upgraded.validateWithResult().validationSuccessful);
         assertPlatformTablesExist();
+        assertNeedsTablesExist();
         assertPlatformSeedWasMigrated();
     }
 
@@ -80,6 +86,17 @@ class PostgreSqlMigrationTest {
             }
         }
         assertTrue(actualTables.containsAll(PLATFORM_TABLES), () -> "Faltan tablas: " + difference(PLATFORM_TABLES, actualTables));
+    }
+
+    private void assertNeedsTablesExist() throws SQLException {
+        Set<String> actualTables = new HashSet<>();
+        try (var connection = POSTGRES.createConnection("");
+                var tables = connection.getMetaData().getTables(null, "cuadronecesidades", "%", new String[]{"TABLE"})) {
+            while (tables.next()) {
+                actualTables.add(tables.getString("TABLE_NAME"));
+            }
+        }
+        assertTrue(actualTables.containsAll(NEEDS_TABLES), () -> "Faltan tablas: " + difference(NEEDS_TABLES, actualTables));
     }
 
     private Set<String> difference(Set<String> expected, Set<String> actual) {

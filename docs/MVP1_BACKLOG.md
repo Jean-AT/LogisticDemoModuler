@@ -31,7 +31,7 @@ Las tareas se ejecutan en el orden indicado. Una tarea posterior puede comenzar 
 
 | Orden | Tarea | Requisitos | Dependencia | Estado |
 |---:|---|---|---|---|
-| 201 | `CN-T01` Crear esquema y agregados de Cuadro, detalle y programacion mensual. | CN-RF01-CN-RF04 | PLT-T07 | PENDIENTE |
+| 201 | `CN-T01` Crear esquema y agregados de Cuadro, detalle y programacion mensual. | CN-RF01-CN-RF04 | PLT-T07 | COMPLETADA |
 | 202 | `CN-T02` Implementar estados, ventanas y reglas de edicion. | CN-RF01, CN-RF05 | CN-T01 | PENDIENTE |
 | 203 | `CN-T03` Implementar revision conservando solicitado/revisado/aprobado. | CN-RF04, CN-RF05 | CN-T02 | PENDIENTE |
 | 204 | `CN-T04` Implementar consolidacion y reversion controlada. | CN-RF06 | CN-T03 | PENDIENTE |

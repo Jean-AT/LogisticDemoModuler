@@ -65,4 +65,16 @@ class MigrationCatalogTest {
         assertTrue(sql.contains("META-002"));
         assertTrue(sql.contains("2.3.2.7.11.99"));
     }
+
+    @Test
+    void shouldCreateNeedsPlanningSchemaInV6() throws IOException {
+        String sql = Files.readString(MIGRATION_DIRECTORY.resolve("V6__create_needs_planning_schema.sql"));
+
+        assertTrue(sql.contains("CREATE SCHEMA cuadronecesidades"));
+        assertTrue(sql.contains("cuadronecesidades.needs_plans"));
+        assertTrue(sql.contains("cuadronecesidades.need_lines"));
+        assertTrue(sql.contains("cuadronecesidades.monthly_needs"));
+        assertTrue(sql.contains("ck_monthly_need_month"));
+        assertTrue(sql.contains("uk_needs_plan_dimension"));
+    }
 }
