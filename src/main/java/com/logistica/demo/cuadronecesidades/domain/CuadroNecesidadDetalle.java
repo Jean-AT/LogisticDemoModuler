@@ -207,6 +207,13 @@ public class CuadroNecesidadDetalle extends AuditableEntity {
         this.approvedQuantity = approvedQuantity;
     }
 
+    BigDecimal approvedEstimatedTotal() {
+        if (approvedQuantity == null) {
+            throw new IllegalStateException("La linea no tiene cantidad aprobada");
+        }
+        return approvedQuantity.multiply(estimatedUnitPrice);
+    }
+
     private static Long requireId(Long value, String field) {
         if (value == null || value <= 0) {
             throw new IllegalArgumentException(field + " es obligatorio");

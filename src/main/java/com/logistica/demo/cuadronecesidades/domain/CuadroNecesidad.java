@@ -166,6 +166,22 @@ public class CuadroNecesidad extends AuditableEntity {
         this.reviewedAt = requireInstant(reviewedAt, "reviewedAt");
     }
 
+    void markConsolidated(OffsetDateTime consolidatedAt) {
+        if (status != EstadoCuadroNecesidad.REVIEWED) {
+            throw new IllegalStateException("Solo se puede consolidar un cuadro en estado REVIEWED");
+        }
+        this.status = EstadoCuadroNecesidad.CONSOLIDATED;
+        this.consolidatedAt = requireInstant(consolidatedAt, "consolidatedAt");
+    }
+
+    void revertConsolidation() {
+        if (status != EstadoCuadroNecesidad.CONSOLIDATED) {
+            throw new IllegalStateException("Solo se puede revertir un cuadro consolidado");
+        }
+        this.status = EstadoCuadroNecesidad.REVIEWED;
+        this.consolidatedAt = null;
+    }
+
     public boolean isEditable() {
         return status == EstadoCuadroNecesidad.DRAFT || status == EstadoCuadroNecesidad.OBSERVED;
     }

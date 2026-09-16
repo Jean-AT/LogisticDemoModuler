@@ -1,5 +1,6 @@
 package com.logistica.demo.cuadronecesidades.application;
 
+import com.logistica.demo.cuadronecesidades.domain.ConsolidacionCuadro;
 import com.logistica.demo.cuadronecesidades.domain.CuadroNecesidad;
 import com.logistica.demo.cuadronecesidades.domain.CuadroNecesidadDetalle;
 import com.logistica.demo.cuadronecesidades.domain.ProgramacionMensualNecesidad;
@@ -52,6 +53,24 @@ public class CuadroNecesidadWorkflowService {
             OffsetDateTime now) {
         requireOpenWindow(reviewWindow, TipoVentanaCuadroNecesidad.REVIEW, now);
         cuadro.reject(now);
+    }
+
+    public ConsolidacionCuadro consolidate(
+            Long companyId,
+            int fiscalYear,
+            List<CuadroNecesidad> plans,
+            VentanaCuadroNecesidad consolidationWindow,
+            OffsetDateTime now) {
+        requireOpenWindow(consolidationWindow, TipoVentanaCuadroNecesidad.CONSOLIDATION, now);
+        return ConsolidacionCuadro.consolidate(companyId, fiscalYear, plans, now);
+    }
+
+    public void reverseConsolidation(
+            ConsolidacionCuadro consolidation,
+            VentanaCuadroNecesidad consolidationWindow,
+            OffsetDateTime now) {
+        requireOpenWindow(consolidationWindow, TipoVentanaCuadroNecesidad.CONSOLIDATION, now);
+        consolidation.reverse(now);
     }
 
     private void requireOpenWindow(

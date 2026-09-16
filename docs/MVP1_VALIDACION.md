@@ -96,3 +96,5 @@ Para `CN-T01`, `MigrationCatalogTest` valida que `V6` cree el esquema `cuadronec
 Para `CN-T02`, `MigrationCatalogTest` valida `V7` con ventanas de registro, revision y consolidacion. `CuadroNecesidadTest` cubre transiciones DRAFT/OBSERVED/SUBMITTED/REVIEWED y bloqueo de edicion fuera de borrador u observado. `CuadroNecesidadWorkflowServiceTest` comprueba que envio y decisiones de revision solo se ejecuten con la ventana correspondiente abierta.
 
 Para `CN-T03`, `CuadroNecesidadTest` valida que la revision preserve cantidades solicitadas y registre cantidades revisadas/aprobadas anuales y mensuales sin sobrescribir la solicitud. `CuadroNecesidadWorkflowServiceTest` exige que la revision cubra todas las lineas antes de pasar a `REVIEWED`.
+
+Para `CN-T04`, `MigrationCatalogTest` valida `V8` con cabecera, origenes y lineas de consolidacion. `ConsolidacionCuadroTest` cubre que solo cuadros `REVIEWED` entren a consolidacion, que las lineas aprobadas se acumulen por dimension y que la reversion antes de transferencia regrese los cuadros a `REVIEWED`. `CuadroNecesidadWorkflowServiceTest` verifica la ventana de consolidacion para consolidar y revertir.

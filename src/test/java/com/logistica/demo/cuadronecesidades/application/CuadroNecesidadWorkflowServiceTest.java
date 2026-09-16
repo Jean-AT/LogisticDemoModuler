@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.logistica.demo.cuadronecesidades.domain.CuadroNecesidad;
 import com.logistica.demo.cuadronecesidades.domain.CuadroNecesidadDetalle;
 import com.logistica.demo.cuadronecesidades.domain.EstadoCuadroNecesidad;
+import com.logistica.demo.cuadronecesidades.domain.EstadoConsolidacionCuadro;
 import com.logistica.demo.cuadronecesidades.domain.ProgramacionMensualNecesidad;
 import com.logistica.demo.cuadronecesidades.domain.TipoVentanaCuadroNecesidad;
 import com.logistica.demo.cuadronecesidades.domain.VentanaCuadroNecesidad;
@@ -93,9 +94,44 @@ class CuadroNecesidadWorkflowServiceTest {
         assertEquals("La revision debe incluir todas las lineas del cuadro", exception.getMessage());
     }
 
+    @Test
+    void shouldConsolidateAndReverseOnlyWhenConsolidationWindowIsOpen() {
+        OffsetDateTime now = OffsetDateTime.parse("2026-03-10T10:00:00-05:00");
+        CuadroNecesidad cuadro = reviewedPlan(now.minusDays(10));
+
+        var consolidation = service.consolidate(
+                1L,
+                2026,
+                List.of(cuadro),
+                window(TipoVentanaCuadroNecesidad.CONSOLIDATION, now.minusDays(1), now.plusDays(1)),
+                now);
+
+        assertEquals(EstadoConsolidacionCuadro.CONSOLIDATED, consolidation.getStatus());
+        assertEquals(EstadoCuadroNecesidad.CONSOLIDATED, cuadro.getStatus());
+
+        service.reverseConsolidation(
+                consolidation,
+                window(TipoVentanaCuadroNecesidad.CONSOLIDATION, now.minusDays(1), now.plusDays(1)),
+                now.plusHours(1));
+
+        assertEquals(EstadoConsolidacionCuadro.REVERSED, consolidation.getStatus());
+        assertEquals(EstadoCuadroNecesidad.REVIEWED, cuadro.getStatus());
+    }
+
     private CuadroNecesidad planWithOneDetail() {
         CuadroNecesidad cuadro = new CuadroNecesidad(1L, 2026, 10L, 20L, 30L, "Plan anual");
         cuadro.addDetail(detail(1));
+        return cuadro;
+    }
+
+    private CuadroNecesidad reviewedPlan(OffsetDateTime baseDate) {
+        CuadroNecesidad cuadro = planWithOneDetail();
+        service.submit(cuadro, window(TipoVentanaCuadroNecesidad.REGISTRATION, baseDate, baseDate.plusDays(1)), baseDate.plusHours(1));
+        service.markReviewed(
+                cuadro,
+                revisions(1, BigDecimal.ONE, BigDecimal.ONE),
+                window(TipoVentanaCuadroNecesidad.REVIEW, baseDate.plusDays(1), baseDate.plusDays(2)),
+                baseDate.plusDays(1).plusHours(1));
         return cuadro;
     }
 

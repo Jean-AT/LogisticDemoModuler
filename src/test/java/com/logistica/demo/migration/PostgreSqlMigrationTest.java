@@ -45,7 +45,10 @@ class PostgreSqlMigrationTest {
             "needs_plans",
             "need_lines",
             "monthly_needs",
-            "needs_windows");
+            "needs_windows",
+            "needs_consolidations",
+            "needs_consolidation_sources",
+            "needs_consolidation_lines");
 
     @Container
     static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16-alpine")

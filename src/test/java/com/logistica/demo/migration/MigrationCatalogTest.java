@@ -87,4 +87,15 @@ class MigrationCatalogTest {
         assertTrue(sql.contains("ck_needs_window_dates"));
         assertTrue(sql.contains("ix_needs_windows_company_year_active"));
     }
+
+    @Test
+    void shouldCreateNeedsConsolidationSchemaInV8() throws IOException {
+        String sql = Files.readString(MIGRATION_DIRECTORY.resolve("V8__create_needs_consolidation.sql"));
+
+        assertTrue(sql.contains("cuadronecesidades.needs_consolidations"));
+        assertTrue(sql.contains("cuadronecesidades.needs_consolidation_sources"));
+        assertTrue(sql.contains("cuadronecesidades.needs_consolidation_lines"));
+        assertTrue(sql.contains("uk_needs_consolidation_open"));
+        assertTrue(sql.contains("'CONSOLIDATED', 'REVERSED', 'TRANSFERRED'"));
+    }
 }
