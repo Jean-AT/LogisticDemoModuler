@@ -92,3 +92,5 @@ Para `PLT-T06`, `DemoApplicationTests` valida los endpoints `/api/v1/platform` p
 Para `PLT-T07`, la suite agrega casos negativos de API sin autenticacion, lectura de seguridad sin permiso, selector invalido de periodo fiscal, permisos fuera de alcance de compania, usuario inexistente y consultas maestras sin resultados. La ejecucion de cierre fue de 58 pruebas: 57 correctas y una omitida porque Docker no estaba activo.
 
 Para `CN-T01`, `MigrationCatalogTest` valida que `V6` cree el esquema `cuadronecesidades` con cabecera, lineas y programacion mensual. `PostgreSqlMigrationTest` comprueba esas tablas en PostgreSQL real cuando Docker esta disponible. `CuadroNecesidadTest` cubre invariantes del agregado: programacion de 12 meses, suma mensual igual a cantidad anual y rechazo de lineas duplicadas.
+
+Para `CN-T02`, `MigrationCatalogTest` valida `V7` con ventanas de registro, revision y consolidacion. `CuadroNecesidadTest` cubre transiciones DRAFT/OBSERVED/SUBMITTED/REVIEWED y bloqueo de edicion fuera de borrador u observado. `CuadroNecesidadWorkflowServiceTest` comprueba que envio y decisiones de revision solo se ejecuten con la ventana correspondiente abierta.

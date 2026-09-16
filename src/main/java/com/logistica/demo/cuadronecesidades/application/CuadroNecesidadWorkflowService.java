@@ -1,0 +1,62 @@
+package com.logistica.demo.cuadronecesidades.application;
+
+import com.logistica.demo.cuadronecesidades.domain.CuadroNecesidad;
+import com.logistica.demo.cuadronecesidades.domain.CuadroNecesidadDetalle;
+import com.logistica.demo.cuadronecesidades.domain.TipoVentanaCuadroNecesidad;
+import com.logistica.demo.cuadronecesidades.domain.VentanaCuadroNecesidad;
+import com.logistica.demo.shared.exception.BusinessRuleException;
+import java.time.OffsetDateTime;
+import java.util.List;
+
+public class CuadroNecesidadWorkflowService {
+
+    public void replaceDetails(
+            CuadroNecesidad cuadro,
+            List<CuadroNecesidadDetalle> details,
+            VentanaCuadroNecesidad registrationWindow,
+            OffsetDateTime now) {
+        requireOpenWindow(registrationWindow, TipoVentanaCuadroNecesidad.REGISTRATION, now);
+        cuadro.replaceDetails(details);
+    }
+
+    public void submit(
+            CuadroNecesidad cuadro,
+            VentanaCuadroNecesidad registrationWindow,
+            OffsetDateTime now) {
+        requireOpenWindow(registrationWindow, TipoVentanaCuadroNecesidad.REGISTRATION, now);
+        cuadro.submit(now);
+    }
+
+    public void observe(
+            CuadroNecesidad cuadro,
+            VentanaCuadroNecesidad reviewWindow,
+            OffsetDateTime now) {
+        requireOpenWindow(reviewWindow, TipoVentanaCuadroNecesidad.REVIEW, now);
+        cuadro.observe(now);
+    }
+
+    public void markReviewed(
+            CuadroNecesidad cuadro,
+            VentanaCuadroNecesidad reviewWindow,
+            OffsetDateTime now) {
+        requireOpenWindow(reviewWindow, TipoVentanaCuadroNecesidad.REVIEW, now);
+        cuadro.markReviewed(now);
+    }
+
+    public void reject(
+            CuadroNecesidad cuadro,
+            VentanaCuadroNecesidad reviewWindow,
+            OffsetDateTime now) {
+        requireOpenWindow(reviewWindow, TipoVentanaCuadroNecesidad.REVIEW, now);
+        cuadro.reject(now);
+    }
+
+    private void requireOpenWindow(
+            VentanaCuadroNecesidad window,
+            TipoVentanaCuadroNecesidad expectedType,
+            OffsetDateTime now) {
+        if (window == null || window.getWindowType() != expectedType || !window.isOpenAt(now)) {
+            throw new BusinessRuleException("La ventana de " + expectedType.name() + " no esta abierta.");
+        }
+    }
+}

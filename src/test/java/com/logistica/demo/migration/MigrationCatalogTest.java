@@ -77,4 +77,14 @@ class MigrationCatalogTest {
         assertTrue(sql.contains("ck_monthly_need_month"));
         assertTrue(sql.contains("uk_needs_plan_dimension"));
     }
+
+    @Test
+    void shouldAddNeedsWindowsInV7() throws IOException {
+        String sql = Files.readString(MIGRATION_DIRECTORY.resolve("V7__add_needs_windows_and_workflow.sql"));
+
+        assertTrue(sql.contains("cuadronecesidades.needs_windows"));
+        assertTrue(sql.contains("'REGISTRATION', 'REVIEW', 'CONSOLIDATION'"));
+        assertTrue(sql.contains("ck_needs_window_dates"));
+        assertTrue(sql.contains("ix_needs_windows_company_year_active"));
+    }
 }

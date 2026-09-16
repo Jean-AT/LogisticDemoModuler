@@ -84,6 +84,7 @@ public class CuadroNecesidad extends AuditableEntity {
     }
 
     public void replaceDetails(List<CuadroNecesidadDetalle> newDetails) {
+        requireEditable();
         if (newDetails == null || newDetails.isEmpty()) {
             throw new IllegalArgumentException("El cuadro debe tener al menos un detalle");
         }
@@ -96,6 +97,7 @@ public class CuadroNecesidad extends AuditableEntity {
     }
 
     public void addDetail(CuadroNecesidadDetalle detail) {
+        requireEditable();
         if (detail == null) {
             throw new IllegalArgumentException("detail es obligatorio");
         }
@@ -106,6 +108,51 @@ public class CuadroNecesidad extends AuditableEntity {
         }
         detail.assignTo(this);
         details.add(detail);
+    }
+
+    public void submit(OffsetDateTime submittedAt) {
+        if (status != EstadoCuadroNecesidad.DRAFT && status != EstadoCuadroNecesidad.OBSERVED) {
+            throw new IllegalStateException("Solo se puede enviar un cuadro en estado DRAFT u OBSERVED");
+        }
+        if (details.isEmpty()) {
+            throw new IllegalStateException("No se puede enviar un cuadro sin detalles");
+        }
+        this.status = EstadoCuadroNecesidad.SUBMITTED;
+        this.submittedAt = requireInstant(submittedAt, "submittedAt");
+    }
+
+    public void observe(OffsetDateTime reviewedAt) {
+        requireReviewDecisionAllowed("observar");
+        this.status = EstadoCuadroNecesidad.OBSERVED;
+        this.reviewedAt = requireInstant(reviewedAt, "reviewedAt");
+    }
+
+    public void markReviewed(OffsetDateTime reviewedAt) {
+        requireReviewDecisionAllowed("revisar");
+        this.status = EstadoCuadroNecesidad.REVIEWED;
+        this.reviewedAt = requireInstant(reviewedAt, "reviewedAt");
+    }
+
+    public void reject(OffsetDateTime reviewedAt) {
+        requireReviewDecisionAllowed("rechazar");
+        this.status = EstadoCuadroNecesidad.REJECTED;
+        this.reviewedAt = requireInstant(reviewedAt, "reviewedAt");
+    }
+
+    public boolean isEditable() {
+        return status == EstadoCuadroNecesidad.DRAFT || status == EstadoCuadroNecesidad.OBSERVED;
+    }
+
+    private void requireEditable() {
+        if (!isEditable()) {
+            throw new IllegalStateException("Solo se puede editar un cuadro en estado DRAFT u OBSERVED");
+        }
+    }
+
+    private void requireReviewDecisionAllowed(String action) {
+        if (status != EstadoCuadroNecesidad.SUBMITTED) {
+            throw new IllegalStateException("Solo se puede " + action + " un cuadro en estado SUBMITTED");
+        }
     }
 
     private static Long requireId(Long value, String field) {
@@ -120,5 +167,12 @@ public class CuadroNecesidad extends AuditableEntity {
             throw new IllegalArgumentException(field + " es obligatorio");
         }
         return value.trim();
+    }
+
+    private static OffsetDateTime requireInstant(OffsetDateTime value, String field) {
+        if (value == null) {
+            throw new IllegalArgumentException(field + " es obligatorio");
+        }
+        return value;
     }
 }

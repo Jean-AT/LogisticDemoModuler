@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -47,6 +48,41 @@ class CuadroNecesidadTest {
                 () -> cuadro.addDetail(detail(1, monthly(BigDecimal.ONE))));
 
         assertEquals("Los numeros de linea no pueden repetirse", exception.getMessage());
+    }
+
+    @Test
+    void shouldSubmitObserveAndAllowEditingObservedPlan() {
+        CuadroNecesidad cuadro = new CuadroNecesidad(1L, 2026, 10L, 20L, 30L, "Plan anual");
+        cuadro.addDetail(detail(1, monthly(BigDecimal.ONE)));
+
+        cuadro.submit(OffsetDateTime.parse("2026-01-10T10:00:00-05:00"));
+        assertEquals(EstadoCuadroNecesidad.SUBMITTED, cuadro.getStatus());
+
+        IllegalStateException submittedEdit = assertThrows(
+                IllegalStateException.class,
+                () -> cuadro.addDetail(detail(2, monthly(BigDecimal.ONE))));
+        assertEquals("Solo se puede editar un cuadro en estado DRAFT u OBSERVED", submittedEdit.getMessage());
+
+        cuadro.observe(OffsetDateTime.parse("2026-01-11T10:00:00-05:00"));
+        cuadro.addDetail(detail(2, monthly(BigDecimal.ONE)));
+
+        assertEquals(EstadoCuadroNecesidad.OBSERVED, cuadro.getStatus());
+        assertEquals(2, cuadro.getDetails().size());
+    }
+
+    @Test
+    void shouldRejectInvalidStateTransitions() {
+        CuadroNecesidad cuadro = new CuadroNecesidad(1L, 2026, 10L, 20L, 30L, "Plan anual");
+
+        IllegalStateException emptySubmit = assertThrows(
+                IllegalStateException.class,
+                () -> cuadro.submit(OffsetDateTime.parse("2026-01-10T10:00:00-05:00")));
+        assertEquals("No se puede enviar un cuadro sin detalles", emptySubmit.getMessage());
+
+        IllegalStateException draftReview = assertThrows(
+                IllegalStateException.class,
+                () -> cuadro.markReviewed(OffsetDateTime.parse("2026-01-10T10:00:00-05:00")));
+        assertEquals("Solo se puede revisar un cuadro en estado SUBMITTED", draftReview.getMessage());
     }
 
     private CuadroNecesidadDetalle detail(int lineNumber, List<ProgramacionMensualNecesidad> months) {

@@ -44,7 +44,8 @@ class PostgreSqlMigrationTest {
     private static final Set<String> NEEDS_TABLES = Set.of(
             "needs_plans",
             "need_lines",
-            "monthly_needs");
+            "monthly_needs",
+            "needs_windows");
 
     @Container
     static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16-alpine")
