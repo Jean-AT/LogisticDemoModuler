@@ -182,6 +182,13 @@ public class CuadroNecesidad extends AuditableEntity {
         this.consolidatedAt = null;
     }
 
+    void markTransferred() {
+        if (status != EstadoCuadroNecesidad.CONSOLIDATED) {
+            throw new IllegalStateException("Solo se puede transferir un cuadro consolidado");
+        }
+        this.status = EstadoCuadroNecesidad.TRANSFERRED;
+    }
+
     public boolean isEditable() {
         return status == EstadoCuadroNecesidad.DRAFT || status == EstadoCuadroNecesidad.OBSERVED;
     }

@@ -98,4 +98,14 @@ class MigrationCatalogTest {
         assertTrue(sql.contains("uk_needs_consolidation_open"));
         assertTrue(sql.contains("'CONSOLIDATED', 'REVERSED', 'TRANSFERRED'"));
     }
+
+    @Test
+    void shouldTrackNeedsTransferResultInV9() throws IOException {
+        String sql = Files.readString(MIGRATION_DIRECTORY.resolve("V9__add_needs_transfer_tracking.sql"));
+
+        assertTrue(sql.contains("transfer_id"));
+        assertTrue(sql.contains("unit_budget_exercise_id"));
+        assertTrue(sql.contains("ck_needs_consolidation_transfer_result"));
+        assertTrue(sql.contains("ix_need_lines_available"));
+    }
 }

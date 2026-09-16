@@ -77,6 +77,27 @@ class ConsolidacionCuadroTest {
         assertEquals("Solo se puede revertir una consolidacion no transferida", exception.getMessage());
     }
 
+    @Test
+    void shouldMarkConsolidationAndPlansAsTransferred() {
+        CuadroNecesidad plan = reviewedPlan();
+        ConsolidacionCuadro consolidation = ConsolidacionCuadro.consolidate(
+                1L,
+                2026,
+                List.of(plan),
+                OffsetDateTime.parse("2026-03-01T10:00:00-05:00"));
+
+        consolidation.markTransferred(100L, 200L, OffsetDateTime.parse("2026-03-02T10:00:00-05:00"));
+
+        assertEquals(EstadoConsolidacionCuadro.TRANSFERRED, consolidation.getStatus());
+        assertEquals(EstadoCuadroNecesidad.TRANSFERRED, plan.getStatus());
+        assertEquals(100L, consolidation.getTransferId());
+        assertEquals(200L, consolidation.getUnitBudgetExerciseId());
+        IllegalStateException exception = assertThrows(
+                IllegalStateException.class,
+                () -> consolidation.reverse(OffsetDateTime.parse("2026-03-03T10:00:00-05:00")));
+        assertEquals("Solo se puede revertir una consolidacion no transferida", exception.getMessage());
+    }
+
     private CuadroNecesidad reviewedPlan() {
         CuadroNecesidad plan = new CuadroNecesidad(1L, 2026, 10L, 20L, 30L, "Plan anual");
         plan.addDetail(detail(1, new BigDecimal("12"), new BigDecimal("1000.00")));

@@ -19,11 +19,12 @@ PLT-T05 migra identidades legacy y carga roles, permisos, monedas, unidades de m
 ### `cuadro`
 
 - `needs_plans`: cabecera por compania, ejercicio, centro, fuente y meta.
-- `needs_lines`: bien, cantidades y montos solicitados, revisados y aprobados.
-- `needs_monthly_schedule`: mes, cantidad y monto para cada linea.
-- `needs_status_history`: transiciones, comentario y responsable.
-- `needs_consolidations`, `needs_consolidation_members`.
-- `needs_budget_transfers`: control idempotente de transferencias.
+- `need_lines`: bien, cantidades solicitadas/revisadas/aprobadas, consumo y montos estimados.
+- `monthly_needs`: mes, cantidades solicitadas/revisadas/aprobadas y consumo para cada linea.
+- `needs_windows`: ventanas de registro, revision y consolidacion.
+- `needs_consolidations`: cabecera consolidada con trazabilidad de transferencia.
+- `needs_consolidation_sources`: cuadros fuente de una consolidacion.
+- `needs_consolidation_lines`: acumulados aprobados por dimension e item.
 
 ### `presupuesto`
 

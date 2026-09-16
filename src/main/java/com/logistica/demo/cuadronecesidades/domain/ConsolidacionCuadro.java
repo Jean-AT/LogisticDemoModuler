@@ -50,6 +50,10 @@ public class ConsolidacionCuadro extends AuditableEntity {
 
     private OffsetDateTime transferredAt;
 
+    private Long transferId;
+
+    private Long unitBudgetExerciseId;
+
     @Version
     private Long version;
 
@@ -88,6 +92,20 @@ public class ConsolidacionCuadro extends AuditableEntity {
         status = EstadoConsolidacionCuadro.REVERSED;
         this.reversedAt = requireInstant(reversedAt, "reversedAt");
         sources.forEach(source -> source.getPlan().revertConsolidation());
+    }
+
+    public void markTransferred(Long transferId, Long unitBudgetExerciseId, OffsetDateTime transferredAt) {
+        if (status != EstadoConsolidacionCuadro.CONSOLIDATED) {
+            throw new IllegalStateException("Solo se puede transferir una consolidacion vigente");
+        }
+        if (transferId == null || transferId <= 0 || unitBudgetExerciseId == null || unitBudgetExerciseId <= 0) {
+            throw new IllegalArgumentException("El resultado de transferencia es obligatorio");
+        }
+        status = EstadoConsolidacionCuadro.TRANSFERRED;
+        this.transferId = transferId;
+        this.unitBudgetExerciseId = unitBudgetExerciseId;
+        this.transferredAt = requireInstant(transferredAt, "transferredAt");
+        sources.forEach(source -> source.getPlan().markTransferred());
     }
 
     private void addPlans(List<CuadroNecesidad> plans) {
