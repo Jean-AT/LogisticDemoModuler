@@ -18,6 +18,9 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -112,6 +115,17 @@ public class CuadroNecesidadDetalle extends AuditableEntity {
         replaceMonthlyNeeds(monthlyNeeds);
     }
 
+    public static CuadroNecesidadDetalle reviewed(
+            int lineNumber,
+            BigDecimal reviewedQuantity,
+            BigDecimal approvedQuantity,
+            List<ProgramacionMensualNecesidad> reviewedMonths) {
+        CuadroNecesidadDetalle detail = new CuadroNecesidadDetalle();
+        detail.lineNumber = lineNumber;
+        detail.review(reviewedQuantity, approvedQuantity, reviewedMonths);
+        return detail;
+    }
+
     void assignTo(CuadroNecesidad cuadro) {
         this.cuadro = cuadro;
         this.companyId = cuadro.getCompanyId();
@@ -141,6 +155,56 @@ public class CuadroNecesidadDetalle extends AuditableEntity {
                     month.assignTo(this);
                     this.monthlyNeeds.add(month);
                 });
+    }
+
+    public void review(
+            BigDecimal reviewedQuantity,
+            BigDecimal approvedQuantity,
+            List<ProgramacionMensualNecesidad> reviewedMonths) {
+        ProgramacionMensualNecesidad.requireNonNegative(reviewedQuantity, "reviewedQuantity");
+        ProgramacionMensualNecesidad.requireNonNegative(approvedQuantity, "approvedQuantity");
+        if (approvedQuantity.compareTo(reviewedQuantity) > 0) {
+            throw new IllegalArgumentException("approvedQuantity no puede superar reviewedQuantity");
+        }
+        if (reviewedMonths == null || reviewedMonths.size() != 12) {
+            throw new IllegalArgumentException("La revision mensual debe contener los 12 meses");
+        }
+
+        Map<Integer, ProgramacionMensualNecesidad> reviewedByMonth = reviewedMonths.stream()
+                .collect(Collectors.toMap(ProgramacionMensualNecesidad::getMonth, Function.identity()));
+        if (!reviewedByMonth.keySet().stream().sorted().toList()
+                .equals(java.util.stream.IntStream.rangeClosed(1, 12).boxed().toList())) {
+            throw new IllegalArgumentException("La revision mensual debe cubrir los meses 1 al 12");
+        }
+
+        BigDecimal monthlyReviewedTotal = reviewedMonths.stream()
+                .map(ProgramacionMensualNecesidad::getReviewedQuantity)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal monthlyApprovedTotal = reviewedMonths.stream()
+                .map(ProgramacionMensualNecesidad::getApprovedQuantity)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        if (monthlyReviewedTotal.compareTo(reviewedQuantity) != 0) {
+            throw new IllegalArgumentException("La suma mensual revisada debe coincidir con la cantidad revisada anual");
+        }
+        if (monthlyApprovedTotal.compareTo(approvedQuantity) != 0) {
+            throw new IllegalArgumentException("La suma mensual aprobada debe coincidir con la cantidad aprobada anual");
+        }
+
+        if (monthlyNeeds.isEmpty()) {
+            reviewedMonths.stream()
+                    .sorted(Comparator.comparingInt(ProgramacionMensualNecesidad::getMonth))
+                    .forEach(month -> {
+                        month.assignTo(this);
+                        monthlyNeeds.add(month);
+                    });
+        } else {
+            monthlyNeeds.forEach(month -> {
+                ProgramacionMensualNecesidad reviewedMonth = reviewedByMonth.get(month.getMonth());
+                month.review(reviewedMonth.getReviewedQuantity(), reviewedMonth.getApprovedQuantity());
+            });
+        }
+        this.reviewedQuantity = reviewedQuantity;
+        this.approvedQuantity = approvedQuantity;
     }
 
     private static Long requireId(Long value, String field) {

@@ -94,3 +94,5 @@ Para `PLT-T07`, la suite agrega casos negativos de API sin autenticacion, lectur
 Para `CN-T01`, `MigrationCatalogTest` valida que `V6` cree el esquema `cuadronecesidades` con cabecera, lineas y programacion mensual. `PostgreSqlMigrationTest` comprueba esas tablas en PostgreSQL real cuando Docker esta disponible. `CuadroNecesidadTest` cubre invariantes del agregado: programacion de 12 meses, suma mensual igual a cantidad anual y rechazo de lineas duplicadas.
 
 Para `CN-T02`, `MigrationCatalogTest` valida `V7` con ventanas de registro, revision y consolidacion. `CuadroNecesidadTest` cubre transiciones DRAFT/OBSERVED/SUBMITTED/REVIEWED y bloqueo de edicion fuera de borrador u observado. `CuadroNecesidadWorkflowServiceTest` comprueba que envio y decisiones de revision solo se ejecuten con la ventana correspondiente abierta.
+
+Para `CN-T03`, `CuadroNecesidadTest` valida que la revision preserve cantidades solicitadas y registre cantidades revisadas/aprobadas anuales y mensuales sin sobrescribir la solicitud. `CuadroNecesidadWorkflowServiceTest` exige que la revision cubra todas las lineas antes de pasar a `REVIEWED`.

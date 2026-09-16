@@ -52,11 +52,30 @@ public class ProgramacionMensualNecesidad {
         this.requestedQuantity = requestedQuantity;
     }
 
+    public static ProgramacionMensualNecesidad reviewed(
+            int month,
+            BigDecimal reviewedQuantity,
+            BigDecimal approvedQuantity) {
+        ProgramacionMensualNecesidad reviewed = new ProgramacionMensualNecesidad(month, BigDecimal.ZERO);
+        reviewed.review(reviewedQuantity, approvedQuantity);
+        return reviewed;
+    }
+
     void assignTo(CuadroNecesidadDetalle detalle) {
         this.detalle = detalle;
     }
 
-    private static void requireNonNegative(BigDecimal value, String field) {
+    void review(BigDecimal reviewedQuantity, BigDecimal approvedQuantity) {
+        requireNonNegative(reviewedQuantity, "reviewedQuantity");
+        requireNonNegative(approvedQuantity, "approvedQuantity");
+        if (approvedQuantity.compareTo(reviewedQuantity) > 0) {
+            throw new IllegalArgumentException("approvedQuantity no puede superar reviewedQuantity");
+        }
+        this.reviewedQuantity = reviewedQuantity;
+        this.approvedQuantity = approvedQuantity;
+    }
+
+    static void requireNonNegative(BigDecimal value, String field) {
         if (value == null || value.signum() < 0) {
             throw new IllegalArgumentException(field + " debe ser mayor o igual a cero");
         }

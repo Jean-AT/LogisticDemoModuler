@@ -16,6 +16,9 @@ import jakarta.persistence.Version;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -129,8 +132,32 @@ public class CuadroNecesidad extends AuditableEntity {
 
     public void markReviewed(OffsetDateTime reviewedAt) {
         requireReviewDecisionAllowed("revisar");
+        requireAllDetailsReviewed();
         this.status = EstadoCuadroNecesidad.REVIEWED;
         this.reviewedAt = requireInstant(reviewedAt, "reviewedAt");
+    }
+
+    public void applyReview(List<CuadroNecesidadDetalle> reviewedDetails) {
+        if (status != EstadoCuadroNecesidad.SUBMITTED) {
+            throw new IllegalStateException("Solo se puede registrar revision de un cuadro en estado SUBMITTED");
+        }
+        if (reviewedDetails == null || reviewedDetails.size() != details.size()) {
+            throw new IllegalArgumentException("La revision debe incluir todas las lineas del cuadro");
+        }
+
+        Map<Integer, CuadroNecesidadDetalle> reviewedByLine = reviewedDetails.stream()
+                .collect(Collectors.toMap(CuadroNecesidadDetalle::getLineNumber, Function.identity()));
+        if (!details.stream().map(CuadroNecesidadDetalle::getLineNumber).allMatch(reviewedByLine::containsKey)) {
+            throw new IllegalArgumentException("La revision debe corresponder a las lineas del cuadro");
+        }
+
+        details.forEach(detail -> {
+            CuadroNecesidadDetalle reviewed = reviewedByLine.get(detail.getLineNumber());
+            detail.review(
+                    reviewed.getReviewedQuantity(),
+                    reviewed.getApprovedQuantity(),
+                    reviewed.getMonthlyNeeds());
+        });
     }
 
     public void reject(OffsetDateTime reviewedAt) {
@@ -152,6 +179,14 @@ public class CuadroNecesidad extends AuditableEntity {
     private void requireReviewDecisionAllowed(String action) {
         if (status != EstadoCuadroNecesidad.SUBMITTED) {
             throw new IllegalStateException("Solo se puede " + action + " un cuadro en estado SUBMITTED");
+        }
+    }
+
+    private void requireAllDetailsReviewed() {
+        boolean hasUnreviewedDetail = details.stream()
+                .anyMatch(detail -> detail.getReviewedQuantity() == null || detail.getApprovedQuantity() == null);
+        if (hasUnreviewedDetail) {
+            throw new IllegalStateException("No se puede revisar un cuadro con lineas pendientes de revision");
         }
     }
 

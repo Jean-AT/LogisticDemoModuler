@@ -51,7 +51,11 @@ class CuadroNecesidadWorkflowServiceTest {
         CuadroNecesidad cuadro = planWithOneDetail();
         service.submit(cuadro, window(TipoVentanaCuadroNecesidad.REGISTRATION, now.minusDays(1), now.plusDays(1)), now);
 
-        service.markReviewed(cuadro, window(TipoVentanaCuadroNecesidad.REVIEW, now.minusHours(1), now.plusHours(1)), now);
+        service.markReviewed(
+                cuadro,
+                revisions(1, BigDecimal.ONE, BigDecimal.ONE),
+                window(TipoVentanaCuadroNecesidad.REVIEW, now.minusHours(1), now.plusHours(1)),
+                now);
 
         assertEquals(EstadoCuadroNecesidad.REVIEWED, cuadro.getStatus());
     }
@@ -70,6 +74,23 @@ class CuadroNecesidadWorkflowServiceTest {
                         now));
 
         assertEquals("La ventana de REVIEW no esta abierta.", exception.getMessage());
+    }
+
+    @Test
+    void shouldRejectReviewWhenRevisionDoesNotCoverAllLines() {
+        OffsetDateTime now = OffsetDateTime.parse("2026-02-10T10:00:00-05:00");
+        CuadroNecesidad cuadro = planWithOneDetail();
+        service.submit(cuadro, window(TipoVentanaCuadroNecesidad.REGISTRATION, now.minusDays(1), now.plusDays(1)), now);
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> service.markReviewed(
+                        cuadro,
+                        List.of(),
+                        window(TipoVentanaCuadroNecesidad.REVIEW, now.minusHours(1), now.plusHours(1)),
+                        now));
+
+        assertEquals("La revision debe incluir todas las lineas del cuadro", exception.getMessage());
     }
 
     private CuadroNecesidad planWithOneDetail() {
@@ -97,6 +118,22 @@ class CuadroNecesidadWorkflowServiceTest {
                 new BigDecimal("12"),
                 new BigDecimal("1200.00"),
                 monthly(BigDecimal.ONE));
+    }
+
+    private List<RevisionLineaCuadro> revisions(
+            int lineNumber,
+            BigDecimal monthlyReviewedQuantity,
+            BigDecimal monthlyApprovedQuantity) {
+        return List.of(new RevisionLineaCuadro(
+                lineNumber,
+                monthlyReviewedQuantity.multiply(new BigDecimal("12")),
+                monthlyApprovedQuantity.multiply(new BigDecimal("12")),
+                IntStream.rangeClosed(1, 12)
+                        .mapToObj(month -> new RevisionMensualCuadro(
+                                month,
+                                monthlyReviewedQuantity,
+                                monthlyApprovedQuantity))
+                        .toList()));
     }
 
     private List<ProgramacionMensualNecesidad> monthly(BigDecimal quantity) {

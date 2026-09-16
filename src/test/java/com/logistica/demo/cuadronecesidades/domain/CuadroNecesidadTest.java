@@ -85,6 +85,46 @@ class CuadroNecesidadTest {
         assertEquals("Solo se puede revisar un cuadro en estado SUBMITTED", draftReview.getMessage());
     }
 
+    @Test
+    void shouldKeepRequestedValuesWhenApplyingReviewAndApproval() {
+        CuadroNecesidad cuadro = new CuadroNecesidad(1L, 2026, 10L, 20L, 30L, "Plan anual");
+        cuadro.addDetail(detail(1, monthly(BigDecimal.ONE)));
+        cuadro.submit(OffsetDateTime.parse("2026-01-10T10:00:00-05:00"));
+
+        cuadro.applyReview(List.of(CuadroNecesidadDetalle.reviewed(
+                1,
+                new BigDecimal("10"),
+                new BigDecimal("8"),
+                reviewedMonthly(
+                        new BigDecimal("0.8333"),
+                        new BigDecimal("0.6667"),
+                        new BigDecimal("0.0004"),
+                        new BigDecimal("-0.0004")))));
+        cuadro.markReviewed(OffsetDateTime.parse("2026-01-11T10:00:00-05:00"));
+
+        CuadroNecesidadDetalle detail = cuadro.getDetails().get(0);
+        assertEquals(EstadoCuadroNecesidad.REVIEWED, cuadro.getStatus());
+        assertEquals(new BigDecimal("12"), detail.getRequestedQuantity());
+        assertEquals(new BigDecimal("10"), detail.getReviewedQuantity());
+        assertEquals(new BigDecimal("8"), detail.getApprovedQuantity());
+        assertEquals(BigDecimal.ONE, detail.getMonthlyNeeds().get(0).getRequestedQuantity());
+        assertEquals(new BigDecimal("0.8337"), detail.getMonthlyNeeds().get(0).getReviewedQuantity());
+        assertEquals(new BigDecimal("0.6663"), detail.getMonthlyNeeds().get(0).getApprovedQuantity());
+    }
+
+    @Test
+    void shouldRejectReviewWhenApprovedQuantityExceedsReviewedQuantity() {
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> CuadroNecesidadDetalle.reviewed(
+                        1,
+                        new BigDecimal("5"),
+                        new BigDecimal("6"),
+                        reviewedMonthly(BigDecimal.ONE, BigDecimal.ONE, BigDecimal.ZERO, BigDecimal.ZERO)));
+
+        assertEquals("approvedQuantity no puede superar reviewedQuantity", exception.getMessage());
+    }
+
     private CuadroNecesidadDetalle detail(int lineNumber, List<ProgramacionMensualNecesidad> months) {
         return new CuadroNecesidadDetalle(
                 lineNumber,
@@ -102,6 +142,19 @@ class CuadroNecesidadTest {
     private List<ProgramacionMensualNecesidad> monthly(BigDecimal quantity) {
         return IntStream.rangeClosed(1, 12)
                 .mapToObj(month -> new ProgramacionMensualNecesidad(month, quantity))
+                .toList();
+    }
+
+    private List<ProgramacionMensualNecesidad> reviewedMonthly(
+            BigDecimal reviewedQuantity,
+            BigDecimal approvedQuantity,
+            BigDecimal firstReviewedExtra,
+            BigDecimal firstApprovedExtra) {
+        return IntStream.rangeClosed(1, 12)
+                .mapToObj(month -> ProgramacionMensualNecesidad.reviewed(
+                        month,
+                        month == 1 ? reviewedQuantity.add(firstReviewedExtra) : reviewedQuantity,
+                        month == 1 ? approvedQuantity.add(firstApprovedExtra) : approvedQuantity))
                 .toList();
     }
 }
