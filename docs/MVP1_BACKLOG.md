@@ -37,7 +37,7 @@ Las tareas se ejecutan en el orden indicado. Una tarea posterior puede comenzar 
 | 204 | `CN-T04` Implementar consolidacion y reversion controlada. | CN-RF06 | CN-T03 | COMPLETADA |
 | 205 | `CN-T05` Implementar transferencia idempotente y consulta de saldos. | CN-RF07, CN-RF08 | CN-T04, ARC-004 | COMPLETADA |
 | 206 | `CN-T06` Crear pantallas de registro, revision, consolidacion y trazabilidad. | CN-RF01-CN-RF08 | CN-T05 | COMPLETADA |
-| 207 | `CN-T07` Agregar pruebas unitarias, API e integracion del flujo anual. | CN-RF01-CN-RF08 | CN-T06 | PENDIENTE |
+| 207 | `CN-T07` Agregar pruebas unitarias, API e integracion del flujo anual. | CN-RF01-CN-RF08 | CN-T06 | COMPLETADA |
 
 ## Fase 3 - Presupuesto
 

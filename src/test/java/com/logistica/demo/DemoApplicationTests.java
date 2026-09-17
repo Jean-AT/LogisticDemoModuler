@@ -7,6 +7,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.logistica.demo.cuadronecesidades.api.NeedsBudgetTransferCommand;
+import com.logistica.demo.cuadronecesidades.api.NeedsBudgetTransferPort;
+import com.logistica.demo.cuadronecesidades.api.NeedsBudgetTransferResult;
+import com.logistica.demo.cuadronecesidades.domain.TipoVentanaCuadroNecesidad;
+import com.logistica.demo.cuadronecesidades.domain.VentanaCuadroNecesidad;
+import com.logistica.demo.cuadronecesidades.infrastructure.persistence.VentanaCuadroNecesidadRepository;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -15,19 +21,26 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = "spring.datasource.url=jdbc:h2:mem:logistica-demo-api;MODE=MSSQLServer;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;NON_KEYWORDS=MONTH")
 @ActiveProfiles("test")
 class DemoApplicationTests {
 
@@ -36,6 +49,12 @@ class DemoApplicationTests {
 
     @LocalServerPort
     private int port;
+
+    @Autowired
+    private VentanaCuadroNecesidadRepository needsWindows;
+
+    @Autowired
+    private RecordingNeedsBudgetTransferPort needsBudgetTransferPort;
 
     @Test
     void contextLoads() {
@@ -808,6 +827,106 @@ class DemoApplicationTests {
     }
 
     @Test
+    void shouldCompleteAnnualNeedsFlowThroughApiWithIdempotentTransferAndBalances() throws Exception {
+        needsBudgetTransferPort.reset();
+        ensureOpenNeedsWindows(1L, 2026);
+
+        HttpResponse<String> create = send(
+                "POST",
+                "/api/v1/needs/plans",
+                buildNeedsPlanRequest(1, "Plan anual API flujo"),
+                "solicitante",
+                "demo123");
+        JsonNode created = objectMapper.readTree(create.body());
+
+        assertEquals(201, create.statusCode());
+        long planId = created.get("id").asLong();
+        long needsLineId = created.get("details").get(0).get("id").asLong();
+
+        HttpResponse<String> submit = send(
+                "POST",
+                "/api/v1/needs/plans/" + planId + "/submit",
+                null,
+                "solicitante",
+                "demo123");
+        assertEquals(200, submit.statusCode());
+        assertEquals("SUBMITTED", objectMapper.readTree(submit.body()).get("status").asText());
+
+        HttpResponse<String> review = send(
+                "POST",
+                "/api/v1/needs/plans/" + planId + "/review",
+                buildNeedsReviewRequest(),
+                "aprobador",
+                "demo123");
+        assertEquals(200, review.statusCode());
+        assertEquals("REVIEWED", objectMapper.readTree(review.body()).get("status").asText());
+
+        HttpResponse<String> consolidate = send(
+                "POST",
+                "/api/v1/needs/consolidations?companyId=1&fiscalYear=2026",
+                null,
+                "aprobador",
+                "demo123");
+        JsonNode consolidated = objectMapper.readTree(consolidate.body());
+
+        assertEquals(201, consolidate.statusCode());
+        assertEquals("CONSOLIDATED", consolidated.get("status").asText());
+        assertEquals(1, consolidated.get("sources").size());
+
+        long consolidationId = consolidated.get("id").asLong();
+        String idempotencyKey = "needs-transfer-cn-t07-" + consolidationId;
+
+        HttpResponse<String> firstTransfer = sendWithHeader(
+                "POST",
+                "/api/v1/needs/consolidations/" + consolidationId + "/transfer",
+                null,
+                "aprobador",
+                "demo123",
+                "Idempotency-Key",
+                idempotencyKey);
+        JsonNode firstTransferBody = objectMapper.readTree(firstTransfer.body());
+        assertEquals(200, firstTransfer.statusCode());
+        assertNotNull(firstTransferBody.get("transferId").asText());
+        assertEquals(false, firstTransferBody.get("replayed").asBoolean());
+
+        HttpResponse<String> replayTransfer = sendWithHeader(
+                "POST",
+                "/api/v1/needs/consolidations/" + consolidationId + "/transfer",
+                null,
+                "aprobador",
+                "demo123",
+                "Idempotency-Key",
+                idempotencyKey);
+        JsonNode replayTransferBody = objectMapper.readTree(replayTransfer.body());
+        assertEquals(200, replayTransfer.statusCode());
+        assertEquals(firstTransferBody.get("transferId").asLong(), replayTransferBody.get("transferId").asLong());
+        assertEquals(true, replayTransferBody.get("replayed").asBoolean());
+        assertEquals(1, needsBudgetTransferPort.callCount());
+
+        HttpResponse<String> balance = send(
+                "GET",
+                "/api/v1/needs/balances/" + needsLineId + "?companyId=1",
+                null,
+                "solicitante",
+                "demo123");
+        JsonNode balanceBody = objectMapper.readTree(balance.body());
+        assertEquals(200, balance.statusCode());
+        assertDecimalEquals("12.0000", balanceBody.get("approvedQuantity"));
+        assertDecimalEquals("12.0000", balanceBody.get("availableQuantity"));
+
+        HttpResponse<String> traceability = send(
+                "GET",
+                "/api/v1/needs/traceability/plans/" + planId,
+                null,
+                "solicitante",
+                "demo123");
+        JsonNode traceabilityBody = objectMapper.readTree(traceability.body());
+        assertEquals(200, traceability.statusCode());
+        assertEquals("TRANSFERRED", traceabilityBody.get("plan").get("status").asText());
+        assertEquals("TRANSFERRED", traceabilityBody.get("consolidations").get(0).get("status").asText());
+    }
+
+    @Test
     void shouldEnforcePlatformAdministrationSecurityAndValidation() throws Exception {
         HttpResponse<String> anonymous = send(
                 "GET",
@@ -845,6 +964,10 @@ class DemoApplicationTests {
     }
 
     private String buildNeedsPlanRequest() throws Exception {
+        return buildNeedsPlanRequest(0, "Plan anual API");
+    }
+
+    private String buildNeedsPlanRequest(int costCenterIndex, String title) throws Exception {
         JsonNode costCenters = objectMapper.readTree(send(
                 "GET",
                 "/api/v1/platform/catalog/cost-centers?companyId=1",
@@ -874,10 +997,10 @@ class DemoApplicationTests {
         ObjectNode request = objectMapper.createObjectNode();
         request.put("companyId", 1);
         request.put("fiscalYear", 2026);
-        request.put("costCenterId", costCenters.get(0).get("id").asLong());
+        request.put("costCenterId", costCenters.get(costCenterIndex).get("id").asLong());
         request.put("financingSourceId", financingSources.get(0).get("id").asLong());
         request.put("goalId", goals.get(0).get("id").asLong());
-        request.put("title", "Plan anual API");
+        request.put("title", title);
 
         ObjectNode detail = objectMapper.createObjectNode();
         detail.put("lineNumber", 1);
@@ -899,10 +1022,67 @@ class DemoApplicationTests {
         return objectMapper.writeValueAsString(request);
     }
 
+    private String buildNeedsReviewRequest() throws Exception {
+        ObjectNode request = objectMapper.createObjectNode();
+        ObjectNode revision = objectMapper.createObjectNode();
+        revision.put("lineNumber", 1);
+        revision.put("reviewedQuantity", "12.0000");
+        revision.put("approvedQuantity", "12.0000");
+        var months = revision.putArray("months");
+        for (int month = 1; month <= 12; month++) {
+            months.addObject()
+                    .put("month", month)
+                    .put("reviewedQuantity", "1.0000")
+                    .put("approvedQuantity", "1.0000");
+        }
+        request.putArray("revisions").add(revision);
+        return objectMapper.writeValueAsString(request);
+    }
+
+    private void ensureOpenNeedsWindows(Long companyId, int fiscalYear) {
+        OffsetDateTime now = OffsetDateTime.now();
+        for (TipoVentanaCuadroNecesidad type : TipoVentanaCuadroNecesidad.values()) {
+            needsWindows.findByCompanyIdAndFiscalYearAndWindowTypeAndActiveTrue(companyId, fiscalYear, type)
+                    .orElseGet(() -> needsWindows.save(new VentanaCuadroNecesidad(
+                            companyId,
+                            fiscalYear,
+                            type,
+                            now.minusDays(1),
+                            now.plusDays(30))));
+        }
+    }
+
     private HttpResponse<String> send(String method, String path, String body, String username, String password) throws Exception {
         HttpRequest.Builder builder = HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:" + port + path))
                 .header("Accept", MediaType.APPLICATION_JSON_VALUE);
+
+        if (username != null) {
+            builder.header("Authorization", "Bearer " + accessToken(username, password));
+        }
+
+        if (body != null) {
+            builder.header("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                    .method(method, HttpRequest.BodyPublishers.ofString(body));
+        } else {
+            builder.method(method, HttpRequest.BodyPublishers.noBody());
+        }
+
+        return HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofString());
+    }
+
+    private HttpResponse<String> sendWithHeader(
+            String method,
+            String path,
+            String body,
+            String username,
+            String password,
+            String header,
+            String value) throws Exception {
+        HttpRequest.Builder builder = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:" + port + path))
+                .header("Accept", MediaType.APPLICATION_JSON_VALUE)
+                .header(header, value);
 
         if (username != null) {
             builder.header("Authorization", "Bearer " + accessToken(username, password));
@@ -993,4 +1173,35 @@ class DemoApplicationTests {
         }
     }
 
+    @TestConfiguration
+    static class NeedsBudgetTransferTestConfig {
+
+        @Bean
+        RecordingNeedsBudgetTransferPort recordingNeedsBudgetTransferPort() {
+            return new RecordingNeedsBudgetTransferPort();
+        }
+    }
+
+    static class RecordingNeedsBudgetTransferPort implements NeedsBudgetTransferPort {
+
+        private final AtomicLong calls = new AtomicLong();
+
+        @Override
+        public NeedsBudgetTransferResult transfer(NeedsBudgetTransferCommand command) {
+            calls.incrementAndGet();
+            return new NeedsBudgetTransferResult(
+                    5000L + command.consolidationId(),
+                    7000L + command.fiscalYear(),
+                    command.lines().size(),
+                    false);
+        }
+
+        void reset() {
+            calls.set(0);
+        }
+
+        long callCount() {
+            return calls.get();
+        }
+    }
 }
