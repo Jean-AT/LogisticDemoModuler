@@ -43,7 +43,7 @@ Las tareas se ejecutan en el orden indicado. Una tarea posterior puede comenzar 
 
 | Orden | Tarea | Requisitos | Dependencia | Estado |
 |---:|---|---|---|---|
-| 301 | `PRE-T01` Crear ejercicios, techos, lineas y movimientos presupuestales. | PRE-RF01, PRE-RF02, PRE-RF05 | CN-T07 | PENDIENTE |
+| 301 | `PRE-T01` Crear ejercicios, techos, lineas y movimientos presupuestales. | PRE-RF01, PRE-RF02, PRE-RF05 | CN-T07 | COMPLETADA |
 | 302 | `PRE-T02` Recibir transferencia y generar Presupuesto de Unidades. | PRE-RF03 | PRE-T01 | PENDIENTE |
 | 303 | `PRE-T03` Generar, revisar y aprobar PIA/PIM inicial. | PRE-RF04 | PRE-T02 | PENDIENTE |
 | 304 | `PRE-T04` Implementar disponibilidad con control de concurrencia. | PRE-RF05 | PRE-T03 | PENDIENTE |

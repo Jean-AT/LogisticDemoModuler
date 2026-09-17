@@ -7,7 +7,7 @@ La cadena PostgreSQL es incremental, inmutable y reproducible desde una base vac
 ## Reglas
 
 - `V1-V3` forman el baseline legacy y quedan congeladas; una correccion se publica en una version nueva.
-- Cada version tiene un solo responsable funcional y se integra en el orden `V4-V10`.
+- Cada version tiene un solo responsable funcional y se integra en el orden publicado de la cadena `V4+`.
 - No se crean archivos vacios para reservar versiones: Flyway registra checksum y una migracion aplicada no se modifica despues.
 - `validate-on-migrate`, validacion de nombres y ubicaciones obligatorias permanecen activos.
 - `baseline-on-migrate` y `out-of-order` permanecen desactivados para no ocultar bases incompletas.
@@ -15,17 +15,17 @@ La cadena PostgreSQL es incremental, inmutable y reproducible desde una base vac
 - Los cambios destructivos se dividen en expandir, migrar datos, validar y retirar en una version posterior.
 - Cada migracion de datos incluye consultas de comprobacion o constraints que hagan fallar la ejecucion ante inconsistencias.
 
-## Plan V4-V10
+## Plan V4+
 
 | Version | Ticket propietario | Contenido | Validacion minima |
 |---|---|---|---|
 | `V4` | `PLT-T01` | Esquema `platform`, maestros y tablas base de seguridad, periodos, auditoria e integracion. | 22 tablas, PK, FK, aislamiento por compania, checks e indices operativos. |
 | `V5` | `PLT-T03` / `PLT-T05` | Migra anticipadamente usuarios, roles y catalogo minimo requerido por la autenticacion; PLT-T05 completara la validacion funcional del catalogo. | Conteos, claves legacy unicas y referencias resueltas. |
-| `V6` | `CN-T01` | Esquema `cuadro`, planes, lineas, meses, historial y consolidacion. | Mes `1-12`, montos/cantidades no negativos y unicidad anual. |
-| `V7` | `PRE-T01` | Esquema `presupuesto`, ejercicios, techos, lineas, movimientos y controles. | Dimensiones completas, movimientos append-only y saldos conciliables. |
-| `V8` | `LOG-T02` | Nuevo esquema/modelo `logistica` compatible con Cuadro y Presupuesto. | Relaciones de origen, versiones y numeros documentales unicos. |
-| `V9` | `LOG-T02` | Migracion de proveedores, almacenes y documentos actuales como `LEGACY_DEMO`. | Conteos origen/destino, importes y estados conciliados. |
-| `V10` | `INT-T02` | Integridad final, indices, vistas y validaciones postmigracion. | Cero huerfanos, duplicados o saldos invalidos; planes de consulta revisados. |
+| `V6` | `CN-T01` | Esquema `cuadronecesidades`, planes, lineas y meses. | Mes `1-12`, montos/cantidades no negativos y unicidad anual. |
+| `V7` | `CN-T02` | Ventanas y soporte de flujo para Cuadro. | Ventanas validas, tipos controlados e indices activos. |
+| `V8` | `CN-T04` | Consolidaciones, origenes y lineas acumuladas. | Unicidad por ejercicio abierto y dimensiones consolidadas. |
+| `V9` | `CN-T05` | Resultado de transferencia y saldos disponibles desde Cuadro. | Transferencia trazable y lineas disponibles indexadas. |
+| `V10` | `PRE-T01` | Esquema `presupuesto`, ejercicios, techos, lineas y movimientos. | Dimensiones completas, movimientos append-only y saldos conciliables. |
 
 ## Validacion automatizada
 

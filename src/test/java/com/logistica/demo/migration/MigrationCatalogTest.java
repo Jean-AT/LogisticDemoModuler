@@ -108,4 +108,18 @@ class MigrationCatalogTest {
         assertTrue(sql.contains("ck_needs_consolidation_transfer_result"));
         assertTrue(sql.contains("ix_need_lines_available"));
     }
+
+    @Test
+    void shouldCreateBudgetFoundationsInV10() throws IOException {
+        String sql = Files.readString(MIGRATION_DIRECTORY.resolve("V10__create_budget_foundations.sql"));
+
+        assertTrue(sql.contains("CREATE SCHEMA presupuesto"));
+        assertTrue(sql.contains("presupuesto.budget_exercises"));
+        assertTrue(sql.contains("presupuesto.budget_ceilings"));
+        assertTrue(sql.contains("presupuesto.budget_lines"));
+        assertTrue(sql.contains("presupuesto.budget_movements"));
+        assertTrue(sql.contains("'UNIDADES', 'PIA', 'PIM'"));
+        assertTrue(sql.contains("ck_budget_line_amounts"));
+        assertTrue(sql.contains("uk_budget_movement_idempotency"));
+    }
 }

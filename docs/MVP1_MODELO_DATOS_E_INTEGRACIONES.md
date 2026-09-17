@@ -75,10 +75,10 @@ PLT-T05 migra identidades legacy y carga roles, permisos, monedas, unidades de m
 | `V4` | Crear esquemas, tipos y tablas base de Plataforma. |
 | `V5` | Migrar usuarios e items actuales y cargar catalogo representativo. |
 | `V6` | Crear tablas de Cuadro de Necesidades. |
-| `V7` | Crear tablas y restricciones de Presupuesto. |
-| `V8` | Crear el nuevo modelo de Logistica. |
-| `V9` | Migrar proveedores, almacenes, requerimientos, aprobaciones y ordenes actuales. |
-| `V10` | Agregar integridad final, indices, vistas de consulta y validaciones postmigracion. |
+| `V7` | Crear ventanas y restricciones de flujo de Cuadro de Necesidades. |
+| `V8` | Crear consolidaciones de Cuadro de Necesidades. |
+| `V9` | Agregar trazabilidad de transferencia y consulta de saldos de Cuadro. |
+| `V10` | Crear ejercicios, techos, lineas y movimientos de Presupuesto. |
 
 Los documentos actuales migrados se identificaran como `LEGACY_DEMO`. Podran consultarse, pero no necesitaran inventar una relacion historica con Cuadro o Presupuesto. Todo documento nuevo exigira esas relaciones.
 
