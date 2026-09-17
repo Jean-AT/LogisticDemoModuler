@@ -761,6 +761,53 @@ class DemoApplicationTests {
     }
 
     @Test
+    void shouldExposeNeedsScreensApi() throws Exception {
+        String request = buildNeedsPlanRequest();
+        HttpResponse<String> create = send(
+                "POST",
+                "/api/v1/needs/plans",
+                request,
+                "solicitante",
+                "demo123");
+        JsonNode created = objectMapper.readTree(create.body());
+
+        assertEquals(201, create.statusCode());
+        assertEquals("DRAFT", created.get("status").asText());
+        assertEquals(12, created.get("details").get(0).get("months").size());
+
+        long planId = created.get("id").asLong();
+        HttpResponse<String> list = send(
+                "GET",
+                "/api/v1/needs/plans?companyId=1&fiscalYear=2026&status=DRAFT",
+                null,
+                "solicitante",
+                "demo123");
+        JsonNode listBody = objectMapper.readTree(list.body());
+        assertEquals(200, list.statusCode());
+        assertTrue(listBody.get("content").toString().contains("Plan anual API"));
+
+        HttpResponse<String> detail = send(
+                "GET",
+                "/api/v1/needs/plans/" + planId,
+                null,
+                "aprobador",
+                "demo123");
+        assertEquals(200, detail.statusCode());
+        assertEquals(planId, objectMapper.readTree(detail.body()).get("id").asLong());
+
+        HttpResponse<String> traceability = send(
+                "GET",
+                "/api/v1/needs/traceability/plans/" + planId,
+                null,
+                "solicitante",
+                "demo123");
+        JsonNode traceabilityBody = objectMapper.readTree(traceability.body());
+        assertEquals(200, traceability.statusCode());
+        assertEquals(planId, traceabilityBody.get("plan").get("id").asLong());
+        assertTrue(traceabilityBody.get("consolidations").isArray());
+    }
+
+    @Test
     void shouldEnforcePlatformAdministrationSecurityAndValidation() throws Exception {
         HttpResponse<String> anonymous = send(
                 "GET",
@@ -795,6 +842,61 @@ class DemoApplicationTests {
         JsonNode body = objectMapper.readTree(response.body());
         assertNotNull(body);
         return body.get(0).get("id").asLong();
+    }
+
+    private String buildNeedsPlanRequest() throws Exception {
+        JsonNode costCenters = objectMapper.readTree(send(
+                "GET",
+                "/api/v1/platform/catalog/cost-centers?companyId=1",
+                null,
+                "solicitante",
+                "demo123").body());
+        JsonNode financingSources = objectMapper.readTree(send(
+                "GET",
+                "/api/v1/platform/catalog/financing-sources?companyId=1",
+                null,
+                "solicitante",
+                "demo123").body());
+        JsonNode goals = objectMapper.readTree(send(
+                "GET",
+                "/api/v1/platform/catalog/goals?companyId=1&fiscalYear=2026",
+                null,
+                "solicitante",
+                "demo123").body());
+        JsonNode items = objectMapper.readTree(send(
+                "GET",
+                "/api/v1/platform/catalog/items?companyId=1",
+                null,
+                "solicitante",
+                "demo123").body());
+        JsonNode item = items.get(0);
+
+        ObjectNode request = objectMapper.createObjectNode();
+        request.put("companyId", 1);
+        request.put("fiscalYear", 2026);
+        request.put("costCenterId", costCenters.get(0).get("id").asLong());
+        request.put("financingSourceId", financingSources.get(0).get("id").asLong());
+        request.put("goalId", goals.get(0).get("id").asLong());
+        request.put("title", "Plan anual API");
+
+        ObjectNode detail = objectMapper.createObjectNode();
+        detail.put("lineNumber", 1);
+        detail.put("catalogItemId", item.get("id").asLong());
+        detail.put("expenseClassifierId", item.get("expenseClassifier").get("id").asLong());
+        detail.put("unitOfMeasureId", item.get("unitOfMeasure").get("id").asLong());
+        detail.put("itemCode", item.get("code").asText());
+        detail.put("itemName", item.get("name").asText());
+        detail.put("unitCode", item.get("unitOfMeasure").get("code").asText());
+        detail.put("requestedQuantity", "12.0000");
+        detail.put("estimatedUnitPrice", "100.00");
+        var months = detail.putArray("months");
+        for (int month = 1; month <= 12; month++) {
+            months.addObject()
+                    .put("month", month)
+                    .put("requestedQuantity", "1.0000");
+        }
+        request.putArray("details").add(detail);
+        return objectMapper.writeValueAsString(request);
     }
 
     private HttpResponse<String> send(String method, String path, String body, String username, String password) throws Exception {

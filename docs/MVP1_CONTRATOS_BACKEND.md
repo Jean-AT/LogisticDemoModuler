@@ -90,6 +90,23 @@ La superficie administrativa versionada de Plataforma se publica bajo `/api/v1/p
 
 ## Cuadro de Necesidades
 
+La superficie versionada de Cuadro se publica bajo `/api/v1/needs`:
+
+| Metodo | Ruta | Uso |
+|---|---|---|
+| `GET` | `/plans?companyId=&fiscalYear=&status=` | Bandeja de registro/revision por estado. |
+| `POST` | `/plans` | Crear Cuadro en borrador con lineas y programacion mensual. |
+| `PUT` | `/plans/{id}/details` | Reemplazar lineas durante ventana de registro. |
+| `POST` | `/plans/{id}/submit` | Enviar a revision. |
+| `POST` | `/plans/{id}/review` | Registrar cantidades revisadas/aprobadas. |
+| `POST` | `/plans/{id}/observe` o `/reject` | Observar o rechazar durante revision. |
+| `GET` | `/consolidations?companyId=&fiscalYear=` | Bandeja de consolidaciones. |
+| `POST` | `/consolidations?companyId=&fiscalYear=` | Consolidar cuadros revisados. |
+| `POST` | `/consolidations/{id}/reverse` | Revertir antes de transferencia. |
+| `POST` | `/consolidations/{id}/transfer` | Transferir con cabecera `Idempotency-Key`. |
+| `GET` | `/balances/{lineId}?companyId=` | Consultar saldo disponible de una linea transferida. |
+| `GET` | `/traceability/plans/{id}` | Trazabilidad desde Cuadro hacia consolidacion/transferencia. |
+
 `NeedsBalanceQuery.findAvailableLine(companyId, needsLineId)` devuelve:
 
 - Cuadro y linea origen.

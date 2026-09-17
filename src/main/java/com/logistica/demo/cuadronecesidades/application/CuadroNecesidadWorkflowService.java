@@ -9,7 +9,9 @@ import com.logistica.demo.cuadronecesidades.domain.VentanaCuadroNecesidad;
 import com.logistica.demo.shared.exception.BusinessRuleException;
 import java.time.OffsetDateTime;
 import java.util.List;
+import org.springframework.stereotype.Service;
 
+@Service
 public class CuadroNecesidadWorkflowService {
 
     public void replaceDetails(
