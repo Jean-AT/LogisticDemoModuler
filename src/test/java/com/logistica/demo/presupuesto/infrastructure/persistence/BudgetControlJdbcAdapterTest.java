@@ -23,12 +23,15 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.transaction.support.TransactionTemplate;
 
 class BudgetControlJdbcAdapterTest {
 
     private JdbcTemplate jdbcTemplate;
     private BudgetControlJdbcAdapter adapter;
+    private TransactionTemplate transactionTemplate;
 
     @BeforeEach
     void setUp() {
@@ -37,6 +40,7 @@ class BudgetControlJdbcAdapterTest {
                 "sa",
                 "");
         jdbcTemplate = new JdbcTemplate(dataSource);
+        transactionTemplate = new TransactionTemplate(new DataSourceTransactionManager(dataSource));
         createSchema();
         seedPim();
         BudgetAvailabilityJdbcAdapter availability = new BudgetAvailabilityJdbcAdapter(jdbcTemplate);
@@ -101,16 +105,73 @@ class BudgetControlJdbcAdapterTest {
         assertTrue(count("presupuesto.budget_movements") >= 4);
     }
 
+    @Test
+    void shouldRejectPrecommitWhenConcurrentBalanceWasAlreadyConsumed() {
+        adapter.precommit(precommit("REQ-003", "precommit-004", "900.00"));
+
+        BusinessRuleException exception = assertThrows(
+                BusinessRuleException.class,
+                () -> transactionTemplate.executeWithoutResult(status ->
+                        adapter.precommit(precommit("REQ-004", 501L, "precommit-005", "150.00"))));
+
+        assertEquals("Saldo presupuestal insuficiente para precomprometer.", exception.getMessage());
+        assertDecimalEquals("900.00", precommittedAmount());
+        assertDecimalEquals("0.00", committedAmount());
+    }
+
+    @Test
+    void shouldReplayCommitAndReleaseWithoutDuplicatingMovements() {
+        BudgetControlResult precommit = adapter.precommit(precommit("REQ-005", "precommit-006", "300.00"));
+        CommitBudgetCommand commit = new CommitBudgetCommand(
+                precommit.budgetControlId(),
+                source("REQ-005"),
+                List.of(allocation("180.00")),
+                new IdempotencyKey("commit-002"),
+                "buyer");
+        ReleaseBudgetCommand release = new ReleaseBudgetCommand(
+                precommit.budgetControlId(),
+                source("REQ-005"),
+                List.of(allocation("120.00")),
+                "diferencia adjudicada",
+                new IdempotencyKey("release-003"),
+                "buyer");
+
+        BudgetControlResult committed = adapter.commit(commit);
+        int movementsAfterCommit = count("presupuesto.budget_movements");
+        BudgetControlResult replayedCommit = adapter.commit(commit);
+        int movementsAfterCommitReplay = count("presupuesto.budget_movements");
+        BudgetControlResult released = adapter.release(release);
+        int movementsAfterRelease = count("presupuesto.budget_movements");
+        BudgetControlResult replayedRelease = adapter.release(release);
+
+        assertEquals(committed.budgetControlId(), replayedCommit.budgetControlId());
+        assertEquals(released.budgetControlId(), replayedRelease.budgetControlId());
+        assertEquals(movementsAfterCommit, movementsAfterCommitReplay);
+        assertEquals(2, movementCount("commit-002"));
+        assertEquals(movementsAfterRelease, count("presupuesto.budget_movements"));
+        assertDecimalEquals("0.00", precommittedAmount());
+        assertDecimalEquals("180.00", committedAmount());
+        assertEquals("COMMITTED", controlStatus(precommit.budgetControlId()));
+    }
+
     private PrecommitBudgetCommand precommit(String number, String idempotencyKey, String amount) {
+        return precommit(number, 500L, idempotencyKey, amount);
+    }
+
+    private PrecommitBudgetCommand precommit(String number, Long sourceId, String idempotencyKey, String amount) {
         return new PrecommitBudgetCommand(
-                source(number),
+                source(number, sourceId),
                 List.of(allocation(amount)),
                 new IdempotencyKey(idempotencyKey),
                 "buyer");
     }
 
     private DocumentReference source(String number) {
-        return new DocumentReference("LOGISTICA", "REQUERIMIENTO", 500L, number);
+        return source(number, 500L);
+    }
+
+    private DocumentReference source(String number, Long sourceId) {
+        return new DocumentReference("LOGISTICA", "REQUERIMIENTO", sourceId, number);
     }
 
     private BudgetAllocation allocation(String amount) {
@@ -133,6 +194,20 @@ class BudgetControlJdbcAdapterTest {
 
     private int count(String table) {
         return jdbcTemplate.queryForObject("SELECT COUNT(*) FROM " + table, Integer.class);
+    }
+
+    private int movementCount(String idempotencyKey) {
+        return jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM presupuesto.budget_movements WHERE idempotency_key LIKE ?",
+                Integer.class,
+                idempotencyKey + ":%");
+    }
+
+    private String controlStatus(Long controlId) {
+        return jdbcTemplate.queryForObject(
+                "SELECT status FROM presupuesto.budget_controls WHERE id = ?",
+                String.class,
+                controlId);
     }
 
     private void assertDecimalEquals(String expected, BigDecimal actual) {

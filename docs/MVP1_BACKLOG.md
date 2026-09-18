@@ -49,7 +49,7 @@ Las tareas se ejecutan en el orden indicado. Una tarea posterior puede comenzar 
 | 304 | `PRE-T04` Implementar disponibilidad con control de concurrencia. | PRE-RF05 | PRE-T03 | COMPLETADA |
 | 305 | `PRE-T05` Implementar `BudgetControlUseCase`. | PRE-RF06-PRE-RF08 | PRE-T04 | COMPLETADA |
 | 306 | `PRE-T06` Crear pantallas de ejercicios, control y consultas. | PRE-RF01-PRE-RF08 | PRE-T05 | COMPLETADA |
-| 307 | `PRE-T07` Probar saldos, idempotencia y aprobaciones concurrentes. | PRE-RF01-PRE-RF08 | PRE-T06 | PENDIENTE |
+| 307 | `PRE-T07` Probar saldos, idempotencia y aprobaciones concurrentes. | PRE-RF01-PRE-RF08 | PRE-T06 | COMPLETADA |
 
 ## Fase 4 - Logistica integrada
 
