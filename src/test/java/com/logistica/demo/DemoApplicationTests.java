@@ -35,6 +35,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -1177,6 +1178,7 @@ class DemoApplicationTests {
     static class NeedsBudgetTransferTestConfig {
 
         @Bean
+        @Primary
         RecordingNeedsBudgetTransferPort recordingNeedsBudgetTransferPort() {
             return new RecordingNeedsBudgetTransferPort();
         }

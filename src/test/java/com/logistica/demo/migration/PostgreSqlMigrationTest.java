@@ -53,7 +53,9 @@ class PostgreSqlMigrationTest {
             "budget_exercises",
             "budget_ceilings",
             "budget_lines",
-            "budget_movements");
+            "budget_movements",
+            "budget_transfers",
+            "budget_transfer_lines");
 
     @Container
     static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16-alpine")

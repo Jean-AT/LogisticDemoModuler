@@ -130,6 +130,8 @@ Logistica consume este contrato antes de crear o modificar un requerimiento.
 
 Devuelve el identificador de transferencia, ejercicio de Unidades, cantidad de lineas y si fue una repeticion atendida desde idempotencia.
 
+La implementacion de Presupuesto tambien publica un adaptador de `NeedsBudgetTransferPort` para que Cuadro invoque la transferencia sin depender de clases internas de Presupuesto. La transferencia crea o reutiliza el ejercicio `UNIDADES`, registra movimientos `ASSIGNMENT` y conserva trazabilidad por linea y mes del Cuadro.
+
 `BudgetAvailabilityQuery.findAvailability(dimension, currency)` devuelve asignado, precomprometido, comprometido y disponible.
 
 `BudgetControlUseCase` publica tres comandos:

@@ -122,4 +122,15 @@ class MigrationCatalogTest {
         assertTrue(sql.contains("ck_budget_line_amounts"));
         assertTrue(sql.contains("uk_budget_movement_idempotency"));
     }
+
+    @Test
+    void shouldReceiveNeedsTransfersInV11() throws IOException {
+        String sql = Files.readString(MIGRATION_DIRECTORY.resolve("V11__receive_needs_transfers.sql"));
+
+        assertTrue(sql.contains("presupuesto.budget_transfers"));
+        assertTrue(sql.contains("presupuesto.budget_transfer_lines"));
+        assertTrue(sql.contains("uk_budget_transfer_consolidation"));
+        assertTrue(sql.contains("uk_budget_transfer_line"));
+        assertTrue(sql.contains("ix_budget_transfer_lines_needs"));
+    }
 }
