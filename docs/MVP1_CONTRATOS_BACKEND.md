@@ -146,6 +146,8 @@ Cada resultado identifica el control, estado, monto afectado y disponibilidad po
 
 La implementacion JDBC de `BudgetControlUseCase` es idempotente por operacion, bloquea la linea `PIM` antes de actualizar saldos, evita mas de un precompromiso activo por documento origen y valida que las liberaciones no excedan el saldo vivo del control.
 
+`BudgetController` expone las pantallas/API de Presupuesto bajo `/api/v1/budget`: generacion, revision y aprobacion de PIA; consulta de disponibilidad; y precompromiso, compromiso y liberacion con cabecera `Idempotency-Key`.
+
 ## Persistencia compartida
 
 Las tablas PostgreSQL de Outbox e idempotencia existen desde `V4`; sus adaptadores transaccionales se implementan en `PLT-T04`, respetando las interfaces aqui definidas.

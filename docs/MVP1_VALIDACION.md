@@ -114,3 +114,5 @@ Para `PRE-T03`, `BudgetPlanJdbcAdapterTest` cubre el flujo generar PIA desde `UN
 Para `PRE-T04`, `BudgetAvailabilityJdbcAdapterTest` valida que la disponibilidad se calcule desde el `PIM` aprobado, que ignore ejercicios no aprobados o dimensiones inexistentes y que el adaptador pueda obtener la linea con bloqueo pesimista para las operaciones presupuestales transaccionales.
 
 Para `PRE-T05`, `BudgetControlJdbcAdapterTest` cubre precompromiso idempotente, bloqueo de doble precompromiso activo para el mismo origen, conversion atomica a compromiso y liberacion parcial sin permitir exceder el saldo del documento origen. `MigrationCatalogTest` valida las tablas e indices de `V13`.
+
+Para `PRE-T06`, `BudgetControllerTest` valida la superficie REST de Presupuesto para planes PIA/PIM, disponibilidad y controles presupuestales, incluyendo la construccion de comandos con el usuario autenticado y la obligatoriedad de `Idempotency-Key` en operaciones de control.
