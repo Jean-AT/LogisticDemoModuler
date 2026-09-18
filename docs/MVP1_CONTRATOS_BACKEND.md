@@ -134,7 +134,7 @@ La implementacion de Presupuesto tambien publica un adaptador de `NeedsBudgetTra
 
 `BudgetPlanUseCase` publica `generatePia`, `reviewPia` y `approvePiaAndCreateInitialPim`. El PIA se genera desde el ejercicio `UNIDADES` aprobado, la revision queda registrada antes de la aprobacion y el PIM inicial se crea con las mismas lineas e importes del PIA aprobado.
 
-`BudgetAvailabilityQuery.findAvailability(dimension, currency)` devuelve asignado, precomprometido, comprometido y disponible.
+`BudgetAvailabilityQuery.findAvailability(dimension, currency)` devuelve asignado, precomprometido, comprometido y disponible desde lineas `PIM` aprobadas. Las operaciones internas de control usan bloqueo pesimista sobre la linea presupuestal antes de mover saldos.
 
 `BudgetControlUseCase` publica tres comandos:
 
