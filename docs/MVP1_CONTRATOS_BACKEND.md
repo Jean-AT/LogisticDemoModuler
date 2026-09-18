@@ -132,6 +132,8 @@ Devuelve el identificador de transferencia, ejercicio de Unidades, cantidad de l
 
 La implementacion de Presupuesto tambien publica un adaptador de `NeedsBudgetTransferPort` para que Cuadro invoque la transferencia sin depender de clases internas de Presupuesto. La transferencia crea o reutiliza el ejercicio `UNIDADES`, registra movimientos `ASSIGNMENT` y conserva trazabilidad por linea y mes del Cuadro.
 
+`BudgetPlanUseCase` publica `generatePia`, `reviewPia` y `approvePiaAndCreateInitialPim`. El PIA se genera desde el ejercicio `UNIDADES` aprobado, la revision queda registrada antes de la aprobacion y el PIM inicial se crea con las mismas lineas e importes del PIA aprobado.
+
 `BudgetAvailabilityQuery.findAvailability(dimension, currency)` devuelve asignado, precomprometido, comprometido y disponible.
 
 `BudgetControlUseCase` publica tres comandos:

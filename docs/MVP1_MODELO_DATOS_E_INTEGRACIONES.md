@@ -33,6 +33,7 @@ PLT-T05 migra identidades legacy y carga roles, permisos, monedas, unidades de m
 - `budget_lines`: asignacion aprobada por compania, ejercicio, mes y dimension.
 - `budget_movements`: asignacion, precompromiso, compromiso y liberacion inmutables.
 - `budget_transfers`, `budget_transfer_lines`: recepcion idempotente de consolidaciones de Cuadro y trazabilidad por linea/mes.
+- `budget_plan_reviews`: revision requerida antes de aprobar PIA y crear PIM inicial.
 - `budget_controls`, `budget_control_lines`: control asociado al requerimiento u orden.
 
 ### `logistica`
@@ -81,6 +82,7 @@ PLT-T05 migra identidades legacy y carga roles, permisos, monedas, unidades de m
 | `V9` | Agregar trazabilidad de transferencia y consulta de saldos de Cuadro. |
 | `V10` | Crear ejercicios, techos, lineas y movimientos de Presupuesto. |
 | `V11` | Recibir consolidaciones de Cuadro y registrar transferencias de Presupuesto de Unidades. |
+| `V12` | Registrar revision de PIA previa a la aprobacion y creacion del PIM inicial. |
 
 Los documentos actuales migrados se identificaran como `LEGACY_DEMO`. Podran consultarse, pero no necesitaran inventar una relacion historica con Cuadro o Presupuesto. Todo documento nuevo exigira esas relaciones.
 

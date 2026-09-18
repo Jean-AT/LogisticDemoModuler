@@ -133,4 +133,14 @@ class MigrationCatalogTest {
         assertTrue(sql.contains("uk_budget_transfer_line"));
         assertTrue(sql.contains("ix_budget_transfer_lines_needs"));
     }
+
+    @Test
+    void shouldRegisterBudgetPlanReviewsInV12() throws IOException {
+        String sql = Files.readString(MIGRATION_DIRECTORY.resolve("V12__create_budget_plan_review.sql"));
+
+        assertTrue(sql.contains("presupuesto.budget_plan_reviews"));
+        assertTrue(sql.contains("uk_budget_plan_review_exercise"));
+        assertTrue(sql.contains("fk_budget_plan_review_exercise"));
+        assertTrue(sql.contains("ix_budget_plan_reviews_reviewed_at"));
+    }
 }
