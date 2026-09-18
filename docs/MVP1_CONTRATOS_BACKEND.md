@@ -144,6 +144,8 @@ La implementacion de Presupuesto tambien publica un adaptador de `NeedsBudgetTra
 
 Cada resultado identifica el control, estado, monto afectado y disponibilidad posterior. `BudgetMovementRegisteredEvent` comunica el movimiento confirmado para auditoria e integraciones futuras.
 
+La implementacion JDBC de `BudgetControlUseCase` es idempotente por operacion, bloquea la linea `PIM` antes de actualizar saldos, evita mas de un precompromiso activo por documento origen y valida que las liberaciones no excedan el saldo vivo del control.
+
 ## Persistencia compartida
 
 Las tablas PostgreSQL de Outbox e idempotencia existen desde `V4`; sus adaptadores transaccionales se implementan en `PLT-T04`, respetando las interfaces aqui definidas.

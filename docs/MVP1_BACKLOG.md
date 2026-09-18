@@ -47,7 +47,7 @@ Las tareas se ejecutan en el orden indicado. Una tarea posterior puede comenzar 
 | 302 | `PRE-T02` Recibir transferencia y generar Presupuesto de Unidades. | PRE-RF03 | PRE-T01 | COMPLETADA |
 | 303 | `PRE-T03` Generar, revisar y aprobar PIA/PIM inicial. | PRE-RF04 | PRE-T02 | COMPLETADA |
 | 304 | `PRE-T04` Implementar disponibilidad con control de concurrencia. | PRE-RF05 | PRE-T03 | COMPLETADA |
-| 305 | `PRE-T05` Implementar `BudgetControlUseCase`. | PRE-RF06-PRE-RF08 | PRE-T04 | PENDIENTE |
+| 305 | `PRE-T05` Implementar `BudgetControlUseCase`. | PRE-RF06-PRE-RF08 | PRE-T04 | COMPLETADA |
 | 306 | `PRE-T06` Crear pantallas de ejercicios, control y consultas. | PRE-RF01-PRE-RF08 | PRE-T05 | PENDIENTE |
 | 307 | `PRE-T07` Probar saldos, idempotencia y aprobaciones concurrentes. | PRE-RF01-PRE-RF08 | PRE-T06 | PENDIENTE |
 

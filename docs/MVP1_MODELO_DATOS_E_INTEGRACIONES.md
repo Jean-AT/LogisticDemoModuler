@@ -83,6 +83,7 @@ PLT-T05 migra identidades legacy y carga roles, permisos, monedas, unidades de m
 | `V10` | Crear ejercicios, techos, lineas y movimientos de Presupuesto. |
 | `V11` | Recibir consolidaciones de Cuadro y registrar transferencias de Presupuesto de Unidades. |
 | `V12` | Registrar revision de PIA previa a la aprobacion y creacion del PIM inicial. |
+| `V13` | Crear controles presupuestales, lineas de control e indices de precompromiso activo. |
 
 Los documentos actuales migrados se identificaran como `LEGACY_DEMO`. Podran consultarse, pero no necesitaran inventar una relacion historica con Cuadro o Presupuesto. Todo documento nuevo exigira esas relaciones.
 

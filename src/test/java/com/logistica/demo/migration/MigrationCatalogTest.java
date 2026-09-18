@@ -143,4 +143,15 @@ class MigrationCatalogTest {
         assertTrue(sql.contains("fk_budget_plan_review_exercise"));
         assertTrue(sql.contains("ix_budget_plan_reviews_reviewed_at"));
     }
+
+    @Test
+    void shouldCreateBudgetControlsInV13() throws IOException {
+        String sql = Files.readString(MIGRATION_DIRECTORY.resolve("V13__create_budget_controls.sql"));
+
+        assertTrue(sql.contains("presupuesto.budget_controls"));
+        assertTrue(sql.contains("presupuesto.budget_control_lines"));
+        assertTrue(sql.contains("uk_budget_control_active_precommit"));
+        assertTrue(sql.contains("ck_budget_control_line_amounts"));
+        assertTrue(sql.contains("ix_budget_control_lines_budget_line"));
+    }
 }

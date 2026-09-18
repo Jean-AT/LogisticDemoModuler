@@ -112,3 +112,5 @@ Para `PRE-T02`, `BudgetNeedsTransferAdapter` implementa `TransferNeedsToBudgetUs
 Para `PRE-T03`, `BudgetPlanJdbcAdapterTest` cubre el flujo generar PIA desde `UNIDADES`, registrar revision y aprobar creando el PIM inicial con los mismos importes. Tambien valida que no se pueda aprobar sin revision y que reintentos no dupliquen ejercicios, lineas ni movimientos. `MigrationCatalogTest` valida la tabla `budget_plan_reviews` de `V12`.
 
 Para `PRE-T04`, `BudgetAvailabilityJdbcAdapterTest` valida que la disponibilidad se calcule desde el `PIM` aprobado, que ignore ejercicios no aprobados o dimensiones inexistentes y que el adaptador pueda obtener la linea con bloqueo pesimista para las operaciones presupuestales transaccionales.
+
+Para `PRE-T05`, `BudgetControlJdbcAdapterTest` cubre precompromiso idempotente, bloqueo de doble precompromiso activo para el mismo origen, conversion atomica a compromiso y liberacion parcial sin permitir exceder el saldo del documento origen. `MigrationCatalogTest` valida las tablas e indices de `V13`.
