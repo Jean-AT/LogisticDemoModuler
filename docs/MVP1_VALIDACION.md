@@ -118,3 +118,5 @@ Para `PRE-T05`, `BudgetControlJdbcAdapterTest` cubre precompromiso idempotente, 
 Para `PRE-T06`, `BudgetControllerTest` valida la superficie REST de Presupuesto para planes PIA/PIM, disponibilidad y controles presupuestales, incluyendo la construccion de comandos con el usuario autenticado y la obligatoriedad de `Idempotency-Key` en operaciones de control.
 
 Para `PRE-T07`, las pruebas de Presupuesto refuerzan saldos e idempotencia: `BudgetControlJdbcAdapterTest` valida rechazo por saldo consumido, replay de compromiso/liberacion sin movimientos duplicados y conservacion de saldos; `BudgetPlanJdbcAdapterTest` mantiene cobertura de aprobacion repetida de PIA/PIM sin duplicar ejercicios, lineas ni movimientos.
+
+Para `LOG-T01`, `mvn test` valida que la reubicacion mecanica de requerimientos, aprobaciones, compras, dashboard y calculo financiero bajo `com.logistica.demo.logistica.*` no cambie comportamiento, rutas REST, entidades ni repositorios existentes.

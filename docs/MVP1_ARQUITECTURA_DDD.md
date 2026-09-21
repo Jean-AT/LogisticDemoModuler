@@ -47,6 +47,8 @@ com.logistica.demo
     `-- api
 ```
 
+Como paso transicional de `LOG-T01`, el codigo legacy de requerimientos, aprobaciones, compras, dashboard y calculo financiero queda reubicado bajo `com.logistica.demo.logistica.*` conservando subpaquetes, endpoints y tablas existentes. El modelo objetivo `domain/application/infrastructure/api` se completa a partir de `LOG-T02` sin romper el comportamiento migrado.
+
 ## Reglas DDD
 
 - Los controladores traducen HTTP y llaman casos de uso; no contienen reglas de negocio.

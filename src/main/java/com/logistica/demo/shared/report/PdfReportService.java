@@ -1,11 +1,11 @@
 package com.logistica.demo.shared.report;
 
-import com.logistica.demo.aprobaciones.dto.AprobacionResponse;
-import com.logistica.demo.compras.dto.OrdenCompraDetalleResponse;
-import com.logistica.demo.compras.dto.OrdenCompraResponse;
-import com.logistica.demo.requerimientos.dto.RequerimientoDetalleResponse;
-import com.logistica.demo.requerimientos.dto.RequerimientoEstadoHistorialResponse;
-import com.logistica.demo.requerimientos.dto.RequerimientoResponse;
+import com.logistica.demo.logistica.aprobaciones.dto.AprobacionResponse;
+import com.logistica.demo.logistica.compras.dto.OrdenCompraDetalleResponse;
+import com.logistica.demo.logistica.compras.dto.OrdenCompraResponse;
+import com.logistica.demo.logistica.requerimientos.dto.RequerimientoDetalleResponse;
+import com.logistica.demo.logistica.requerimientos.dto.RequerimientoEstadoHistorialResponse;
+import com.logistica.demo.logistica.requerimientos.dto.RequerimientoResponse;
 import com.logistica.demo.shared.config.DemoReportProperties;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
