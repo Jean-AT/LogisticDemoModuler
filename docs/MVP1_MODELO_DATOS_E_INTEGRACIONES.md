@@ -46,6 +46,8 @@ PLT-T05 migra identidades legacy y carga roles, permisos, monedas, unidades de m
 - `warehouse_receipts`, `warehouse_receipt_lines`.
 - `inventory_movements`, `inventory_movement_lines`.
 
+`V14__create_logistics_model_and_migrate_legacy.sql` crea este esquema objetivo, conserva los maestros de proveedores y almacenes y migra requerimientos, lineas, aprobaciones, historial y ordenes actuales desde `logistica_demo` con `source_system = 'LEGACY_DEMO'` y `legacy_id`. Los documentos migrados quedan en estado `LEGACY_IMPORTED` para consulta y trazabilidad, mientras los documentos nuevos se crearan desde Cuadro y Presupuesto en los tickets posteriores.
+
 ## Reglas de persistencia
 
 - Todas las tablas transaccionales incluyen `company_id`, auditoria y `version`.
@@ -84,6 +86,7 @@ PLT-T05 migra identidades legacy y carga roles, permisos, monedas, unidades de m
 | `V11` | Recibir consolidaciones de Cuadro y registrar transferencias de Presupuesto de Unidades. |
 | `V12` | Registrar revision de PIA previa a la aprobacion y creacion del PIM inicial. |
 | `V13` | Crear controles presupuestales, lineas de control e indices de precompromiso activo. |
+| `V14` | Crear el modelo objetivo de Logistica y migrar documentos legacy como `LEGACY_DEMO`. |
 
 Los documentos actuales migrados se identificaran como `LEGACY_DEMO`. Podran consultarse, pero no necesitaran inventar una relacion historica con Cuadro o Presupuesto. Todo documento nuevo exigira esas relaciones.
 

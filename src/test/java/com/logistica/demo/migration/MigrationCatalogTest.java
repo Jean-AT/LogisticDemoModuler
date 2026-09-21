@@ -154,4 +154,17 @@ class MigrationCatalogTest {
         assertTrue(sql.contains("ck_budget_control_line_amounts"));
         assertTrue(sql.contains("ix_budget_control_lines_budget_line"));
     }
+
+    @Test
+    void shouldCreateLogisticsModelAndMigrateLegacyInV14() throws IOException {
+        String sql = Files.readString(MIGRATION_DIRECTORY.resolve("V14__create_logistics_model_and_migrate_legacy.sql"));
+
+        assertTrue(sql.contains("CREATE SCHEMA logistica"));
+        assertTrue(sql.contains("logistica.requisitions"));
+        assertTrue(sql.contains("logistica.requisition_lines"));
+        assertTrue(sql.contains("logistica.purchase_orders"));
+        assertTrue(sql.contains("logistica.inventory_movements"));
+        assertTrue(sql.contains("'LEGACY_DEMO'"));
+        assertTrue(sql.contains("LOG-T02 validation failed"));
+    }
 }

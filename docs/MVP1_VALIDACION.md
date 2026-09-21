@@ -120,3 +120,5 @@ Para `PRE-T06`, `BudgetControllerTest` valida la superficie REST de Presupuesto 
 Para `PRE-T07`, las pruebas de Presupuesto refuerzan saldos e idempotencia: `BudgetControlJdbcAdapterTest` valida rechazo por saldo consumido, replay de compromiso/liberacion sin movimientos duplicados y conservacion de saldos; `BudgetPlanJdbcAdapterTest` mantiene cobertura de aprobacion repetida de PIA/PIM sin duplicar ejercicios, lineas ni movimientos.
 
 Para `LOG-T01`, `mvn test` valida que la reubicacion mecanica de requerimientos, aprobaciones, compras, dashboard y calculo financiero bajo `com.logistica.demo.logistica.*` no cambie comportamiento, rutas REST, entidades ni repositorios existentes.
+
+Para `LOG-T02`, `MigrationCatalogTest` valida `V14__create_logistics_model_and_migrate_legacy.sql`: creacion del esquema `logistica`, tablas principales de requerimientos, ordenes e inventario, marca `LEGACY_DEMO` y bloque de validacion `LOG-T02 validation failed` para conteos y referencias migradas.
