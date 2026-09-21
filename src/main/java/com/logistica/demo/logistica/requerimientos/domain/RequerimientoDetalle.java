@@ -42,6 +42,12 @@ public class RequerimientoDetalle {
     @Column(nullable = false)
     private Integer cantidad;
 
+    @Column(name = "needs_line_id")
+    private Long needsLineId;
+
+    @Column(name = "available_quantity_snapshot", precision = 18, scale = 4)
+    private BigDecimal availableQuantitySnapshot;
+
     @Column(nullable = false, precision = 18, scale = 2)
     private BigDecimal precioUnitarioEstimado;
 

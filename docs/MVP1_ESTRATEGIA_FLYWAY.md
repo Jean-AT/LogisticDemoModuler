@@ -27,6 +27,7 @@ La cadena PostgreSQL es incremental, inmutable y reproducible desde una base vac
 | `V9` | `CN-T05` | Resultado de transferencia y saldos disponibles desde Cuadro. | Transferencia trazable y lineas disponibles indexadas. |
 | `V10` | `PRE-T01` | Esquema `presupuesto`, ejercicios, techos, lineas y movimientos. | Dimensiones completas, movimientos append-only y saldos conciliables. |
 | `V14` | `LOG-T02` | Esquema objetivo `logistica`, maestros logisticos, documentos, cotizaciones, ordenes, recepciones e inventario; migracion legacy como `LEGACY_DEMO`. | Conteos migrados, claves legacy trazables, indices por bandeja y origen. |
+| `V15` | `LOG-T03` | Trazabilidad desde requerimientos legacy runtime hacia lineas de Cuadro aprobadas y vista unificada de origen. | FK a Cuadro/Platform, snapshot de saldo disponible e indice por `needs_line_id`. |
 
 ## Validacion automatizada
 

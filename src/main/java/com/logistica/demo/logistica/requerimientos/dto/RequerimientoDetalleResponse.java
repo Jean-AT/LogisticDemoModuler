@@ -11,6 +11,8 @@ public record RequerimientoDetalleResponse(
         String almacenCode,
         String almacenName,
         Integer cantidad,
+        Long needsLineId,
+        BigDecimal availableQuantitySnapshot,
         BigDecimal precioUnitarioEstimado,
         BigDecimal subtotalLinea) {
 }

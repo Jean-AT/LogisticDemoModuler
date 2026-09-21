@@ -57,7 +57,7 @@ Las tareas se ejecutan en el orden indicado. Una tarea posterior puede comenzar 
 |---:|---|---|---|---|
 | 401 | `LOG-T01` Reubicar codigo actual bajo el modulo Logistica sin cambiar comportamiento. | RNF-02 | PRE-T07 | COMPLETADA |
 | 402 | `LOG-T02` Crear nuevo modelo y migrar datos actuales como `LEGACY_DEMO`. | LOG-RF01-LOG-RF03 | LOG-T01, ARC-007 | COMPLETADA |
-| 403 | `LOG-T03` Crear requerimiento desde linea de Cuadro y controlar cantidad disponible. | LOG-RF02 | LOG-T02 | PENDIENTE |
+| 403 | `LOG-T03` Crear requerimiento desde linea de Cuadro y controlar cantidad disponible. | LOG-RF02 | LOG-T02 | COMPLETADA |
 | 404 | `LOG-T04` Integrar aprobacion de area y precompromiso. | LOG-RF03, LOG-RF04 | LOG-T03, PRE-T05 | PENDIENTE |
 | 405 | `LOG-T05` Implementar cotizaciones, comparacion y adjudicacion. | LOG-RF05 | LOG-T04 | PENDIENTE |
 | 406 | `LOG-T06` Generar y aprobar OC desde adjudicacion, comprometiendo presupuesto. | LOG-RF06, LOG-RF07 | LOG-T05 | PENDIENTE |

@@ -1,8 +1,13 @@
 package com.logistica.demo.logistica.requerimientos.service;
 
+import com.logistica.demo.cuadronecesidades.api.NeedsBalanceQuery;
+import com.logistica.demo.cuadronecesidades.api.NeedsLineBalance;
 import com.logistica.demo.logistica.aprobaciones.dto.AprobacionResponse;
 import com.logistica.demo.logistica.compras.domain.OrdenCompra;
 import com.logistica.demo.logistica.finanzas.service.FinancialCalculatorService;
+import com.logistica.demo.logistica.requerimientos.domain.EstadoRequerimiento;
+import com.logistica.demo.logistica.requerimientos.domain.Requerimiento;
+import com.logistica.demo.logistica.requerimientos.domain.RequerimientoDetalle;
 import com.logistica.demo.maestros.domain.Almacen;
 import com.logistica.demo.maestros.domain.Item;
 import com.logistica.demo.maestros.domain.Proveedor;
@@ -10,14 +15,14 @@ import com.logistica.demo.maestros.dto.ProveedorResponse;
 import com.logistica.demo.maestros.repository.AlmacenRepository;
 import com.logistica.demo.maestros.repository.ItemRepository;
 import com.logistica.demo.maestros.repository.ProveedorRepository;
+import com.logistica.demo.platform.api.MasterDataReference;
+import com.logistica.demo.platform.api.PlatformCatalogQuery;
 import com.logistica.demo.logistica.requerimientos.dto.RequerimientoEstadoHistorialResponse;
-import com.logistica.demo.logistica.requerimientos.domain.EstadoRequerimiento;
-import com.logistica.demo.logistica.requerimientos.domain.Requerimiento;
-import com.logistica.demo.logistica.requerimientos.domain.RequerimientoDetalle;
 import com.logistica.demo.logistica.requerimientos.dto.OrdenCompraResumenResponse;
 import com.logistica.demo.logistica.requerimientos.dto.RequerimientoCreateRequest;
 import com.logistica.demo.logistica.requerimientos.dto.RequerimientoDetalleRequest;
 import com.logistica.demo.logistica.requerimientos.dto.RequerimientoDetalleResponse;
+import com.logistica.demo.logistica.requerimientos.dto.RequerimientoFromNeedsLineRequest;
 import com.logistica.demo.logistica.requerimientos.dto.RequerimientoResponse;
 import com.logistica.demo.logistica.requerimientos.repository.RequerimientoRepository;
 import com.logistica.demo.sharedkernel.web.PageResponse;
@@ -26,6 +31,7 @@ import com.logistica.demo.shared.exception.BusinessRuleException;
 import com.logistica.demo.shared.exception.ResourceNotFoundException;
 import com.logistica.demo.shared.security.CurrentUserService;
 import com.logistica.demo.shared.security.UserRole;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -47,6 +53,8 @@ public class RequerimientoService {
     private final AlmacenRepository almacenRepository;
     private final FinancialCalculatorService financialCalculatorService;
     private final CurrentUserService currentUserService;
+    private final NeedsBalanceQuery needsBalanceQuery;
+    private final PlatformCatalogQuery platformCatalogQuery;
 
     public RequerimientoService(
             RequerimientoRepository requerimientoRepository,
@@ -54,13 +62,17 @@ public class RequerimientoService {
             ItemRepository itemRepository,
             AlmacenRepository almacenRepository,
             FinancialCalculatorService financialCalculatorService,
-            CurrentUserService currentUserService) {
+            CurrentUserService currentUserService,
+            NeedsBalanceQuery needsBalanceQuery,
+            PlatformCatalogQuery platformCatalogQuery) {
         this.requerimientoRepository = requerimientoRepository;
         this.proveedorRepository = proveedorRepository;
         this.itemRepository = itemRepository;
         this.almacenRepository = almacenRepository;
         this.financialCalculatorService = financialCalculatorService;
         this.currentUserService = currentUserService;
+        this.needsBalanceQuery = needsBalanceQuery;
+        this.platformCatalogQuery = platformCatalogQuery;
     }
 
     @Transactional
@@ -75,6 +87,63 @@ public class RequerimientoService {
         requerimiento.setMoneda(request.moneda());
         requerimiento.cambiarEstado(EstadoRequerimiento.BORRADOR, "Requerimiento creado.");
         requerimiento.replaceDetalles(buildDetalles(request.detalles()));
+
+        Requerimiento saved = requerimientoRepository.saveAndFlush(requerimiento);
+        saved.setNumero("REQ-%06d".formatted(saved.getId()));
+
+        return mapResponse(saved);
+    }
+
+    @Transactional
+    public RequerimientoResponse createFromNeedsLine(RequerimientoFromNeedsLineRequest request) {
+        validateNeedsLineRequest(request);
+
+        NeedsLineBalance balance = needsBalanceQuery.findAvailableLine(request.companyId(), request.needsLineId())
+                .orElseThrow(() -> new ResourceNotFoundException("Linea de Cuadro no encontrada o sin saldo disponible."));
+        if (!request.companyId().equals(balance.companyId())) {
+            throw new BusinessRuleException("La linea de Cuadro no pertenece a la empresa indicada.");
+        }
+
+        BigDecimal requestedQuantity = BigDecimal.valueOf(request.cantidad());
+        BigDecimal availableQuantity = balance.availableQuantity() == null ? BigDecimal.ZERO : balance.availableQuantity();
+        if (requestedQuantity.compareTo(availableQuantity) > 0) {
+            throw new BusinessRuleException(
+                    "La cantidad solicitada supera la cantidad disponible de la linea de Cuadro.");
+        }
+
+        MasterDataReference catalogItem = platformCatalogQuery.findActiveCatalogItem(balance.catalogItemId())
+                .orElseThrow(() -> new ResourceNotFoundException("Item de Cuadro no encontrado."));
+        Item item = itemRepository.findByCodeIgnoreCaseAndActiveTrue(catalogItem.code())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Item logistico no encontrado para la linea de Cuadro."));
+        Proveedor proveedor = proveedorRepository.findById(request.proveedorId())
+                .filter(Proveedor::isActive)
+                .orElseThrow(() -> new ResourceNotFoundException("Proveedor no encontrado."));
+        Almacen almacen = almacenRepository.findById(request.almacenId())
+                .filter(Almacen::isActive)
+                .orElseThrow(() -> new ResourceNotFoundException("Almacen no encontrado."));
+
+        RequerimientoDetalle detalle = new RequerimientoDetalle();
+        detalle.setItem(item);
+        detalle.setAlmacen(almacen);
+        detalle.setCantidad(request.cantidad());
+        detalle.setNeedsLineId(balance.needsLineId());
+        detalle.setAvailableQuantitySnapshot(availableQuantity);
+        detalle.setPrecioUnitarioEstimado(request.precioUnitarioEstimado());
+        detalle.setSubtotalLinea(financialCalculatorService.calculateLineSubtotal(
+                request.cantidad(),
+                request.precioUnitarioEstimado()));
+
+        Requerimiento requerimiento = new Requerimiento();
+        requerimiento.setDescripcion(request.descripcion().trim());
+        requerimiento.setProveedor(proveedor);
+        requerimiento.setMoneda(request.moneda());
+        requerimiento.setCompanyId(balance.companyId());
+        requerimiento.setFiscalYear(balance.fiscalYear());
+        requerimiento.setNeedsPlanId(balance.needsPlanId());
+        requerimiento.setNeedsLineId(balance.needsLineId());
+        requerimiento.cambiarEstado(EstadoRequerimiento.BORRADOR, "Requerimiento creado desde linea de Cuadro.");
+        requerimiento.addDetalle(detalle);
 
         Requerimiento saved = requerimientoRepository.saveAndFlush(requerimiento);
         saved.setNumero("REQ-%06d".formatted(saved.getId()));
@@ -207,6 +276,33 @@ public class RequerimientoService {
         return detalles;
     }
 
+    private void validateNeedsLineRequest(RequerimientoFromNeedsLineRequest request) {
+        if (request.descripcion() == null || request.descripcion().isBlank()) {
+            throw new BadRequestException("La descripcion es obligatoria.");
+        }
+        if (request.proveedorId() == null || request.proveedorId() <= 0) {
+            throw new BadRequestException("El proveedor es obligatorio.");
+        }
+        if (request.moneda() == null) {
+            throw new BadRequestException("La moneda es obligatoria.");
+        }
+        if (request.companyId() == null || request.companyId() <= 0) {
+            throw new BadRequestException("La empresa es obligatoria.");
+        }
+        if (request.needsLineId() == null || request.needsLineId() <= 0) {
+            throw new BadRequestException("La linea de Cuadro es obligatoria.");
+        }
+        if (request.almacenId() == null || request.almacenId() <= 0) {
+            throw new BadRequestException("El almacen es obligatorio.");
+        }
+        if (request.cantidad() == null || request.cantidad() <= 0) {
+            throw new BadRequestException("La cantidad debe ser mayor que cero.");
+        }
+        if (request.precioUnitarioEstimado() == null || request.precioUnitarioEstimado().compareTo(BigDecimal.ZERO) < 0) {
+            throw new BadRequestException("El precio unitario estimado no puede ser negativo.");
+        }
+    }
+
     public RequerimientoResponse mapResponse(Requerimiento requerimiento) {
         return new RequerimientoResponse(
                 requerimiento.getId(),
@@ -214,6 +310,10 @@ public class RequerimientoService {
                 requerimiento.getDescripcion(),
                 requerimiento.getEstado(),
                 requerimiento.getMoneda(),
+                requerimiento.getCompanyId(),
+                requerimiento.getFiscalYear(),
+                requerimiento.getNeedsPlanId(),
+                requerimiento.getNeedsLineId(),
                 new ProveedorResponse(
                         requerimiento.getProveedor().getId(),
                         requerimiento.getProveedor().getCode(),
@@ -228,6 +328,8 @@ public class RequerimientoService {
                                 detalle.getAlmacen().getCode(),
                                 detalle.getAlmacen().getName(),
                                 detalle.getCantidad(),
+                                detalle.getNeedsLineId(),
+                                detalle.getAvailableQuantitySnapshot(),
                                 detalle.getPrecioUnitarioEstimado(),
                                 detalle.getSubtotalLinea()))
                         .toList(),

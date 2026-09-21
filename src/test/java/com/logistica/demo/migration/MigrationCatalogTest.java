@@ -167,4 +167,16 @@ class MigrationCatalogTest {
         assertTrue(sql.contains("'LEGACY_DEMO'"));
         assertTrue(sql.contains("LOG-T02 validation failed"));
     }
+
+    @Test
+    void shouldLinkLegacyRequisitionsToNeedsInV15() throws IOException {
+        String sql = Files.readString(MIGRATION_DIRECTORY.resolve("V15__link_legacy_requisitions_to_needs.sql"));
+
+        assertTrue(sql.contains("logistica_demo.requerimientos"));
+        assertTrue(sql.contains("needs_plan_id"));
+        assertTrue(sql.contains("needs_line_id"));
+        assertTrue(sql.contains("available_quantity_snapshot"));
+        assertTrue(sql.contains("logistica.requisition_need_traceability"));
+        assertTrue(sql.contains("LOG-T03 validation failed"));
+    }
 }

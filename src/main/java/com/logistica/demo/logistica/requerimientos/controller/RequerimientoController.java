@@ -2,6 +2,7 @@ package com.logistica.demo.logistica.requerimientos.controller;
 
 import com.logistica.demo.logistica.requerimientos.domain.EstadoRequerimiento;
 import com.logistica.demo.logistica.requerimientos.dto.RequerimientoCreateRequest;
+import com.logistica.demo.logistica.requerimientos.dto.RequerimientoFromNeedsLineRequest;
 import com.logistica.demo.logistica.requerimientos.dto.RequerimientoResponse;
 import com.logistica.demo.logistica.requerimientos.service.RequerimientoService;
 import com.logistica.demo.sharedkernel.web.ApiPaths;
@@ -44,6 +45,13 @@ public class RequerimientoController {
     @PreAuthorize("hasAnyRole('SOLICITANTE', 'ADMIN')")
     public RequerimientoResponse create(@RequestBody RequerimientoCreateRequest request) {
         return requerimientoService.create(request);
+    }
+
+    @PostMapping("/desde-cuadro")
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAnyRole('SOLICITANTE', 'ADMIN')")
+    public RequerimientoResponse createFromNeedsLine(@RequestBody RequerimientoFromNeedsLineRequest request) {
+        return requerimientoService.createFromNeedsLine(request);
     }
 
     @GetMapping
