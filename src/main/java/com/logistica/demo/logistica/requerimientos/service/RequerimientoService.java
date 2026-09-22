@@ -314,6 +314,7 @@ public class RequerimientoService {
                 requerimiento.getFiscalYear(),
                 requerimiento.getNeedsPlanId(),
                 requerimiento.getNeedsLineId(),
+                requerimiento.getBudgetControlId(),
                 new ProveedorResponse(
                         requerimiento.getProveedor().getId(),
                         requerimiento.getProveedor().getCode(),

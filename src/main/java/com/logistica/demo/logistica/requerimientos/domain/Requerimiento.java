@@ -67,6 +67,9 @@ public class Requerimiento extends AuditableEntity {
     @Column(name = "needs_line_id")
     private Long needsLineId;
 
+    @Column(name = "budget_control_id")
+    private Long budgetControlId;
+
     @OneToMany(mappedBy = "requerimiento", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RequerimientoDetalle> detalles = new ArrayList<>();
 

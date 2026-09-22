@@ -179,4 +179,14 @@ class MigrationCatalogTest {
         assertTrue(sql.contains("logistica.requisition_need_traceability"));
         assertTrue(sql.contains("LOG-T03 validation failed"));
     }
+
+    @Test
+    void shouldLinkRequisitionsToBudgetControlsInV16() throws IOException {
+        String sql = Files.readString(MIGRATION_DIRECTORY.resolve("V16__link_requisitions_to_budget_controls.sql"));
+
+        assertTrue(sql.contains("budget_control_id"));
+        assertTrue(sql.contains("presupuesto.budget_controls"));
+        assertTrue(sql.contains("logistica.requisition_budget_traceability"));
+        assertTrue(sql.contains("LOG-T04 validation failed"));
+    }
 }

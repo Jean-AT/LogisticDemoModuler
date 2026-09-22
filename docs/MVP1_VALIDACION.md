@@ -124,3 +124,5 @@ Para `LOG-T01`, `mvn test` valida que la reubicacion mecanica de requerimientos,
 Para `LOG-T02`, `MigrationCatalogTest` valida `V14__create_logistics_model_and_migrate_legacy.sql`: creacion del esquema `logistica`, tablas principales de requerimientos, ordenes e inventario, marca `LEGACY_DEMO` y bloque de validacion `LOG-T02 validation failed` para conteos y referencias migradas.
 
 Para `LOG-T03`, `RequerimientoServiceTest` cubre la creacion de requerimientos desde una linea de Cuadro, copiando trazabilidad y rechazando cantidades mayores al saldo disponible. `MigrationCatalogTest` valida `V15__link_legacy_requisitions_to_needs.sql` con FK a Cuadro, snapshot de disponibilidad y vista `logistica.requisition_need_traceability`.
+
+Para `LOG-T04`, `AprobacionServiceTest` valida que aprobar un requerimiento originado en Cuadro cree un precompromiso presupuestal mensual, guarde el `budgetControlId` y no precomprometa cuando se observa. `MigrationCatalogTest` valida `V16__link_requisitions_to_budget_controls.sql` con FK a controles presupuestales y la regla `LOG-T04 validation failed`.

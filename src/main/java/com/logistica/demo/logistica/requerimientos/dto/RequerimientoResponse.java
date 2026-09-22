@@ -17,6 +17,7 @@ public record RequerimientoResponse(
         Integer fiscalYear,
         Long needsPlanId,
         Long needsLineId,
+        Long budgetControlId,
         ProveedorResponse proveedor,
         List<RequerimientoDetalleResponse> detalles,
         List<AprobacionResponse> aprobaciones,

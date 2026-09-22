@@ -28,6 +28,7 @@ La cadena PostgreSQL es incremental, inmutable y reproducible desde una base vac
 | `V10` | `PRE-T01` | Esquema `presupuesto`, ejercicios, techos, lineas y movimientos. | Dimensiones completas, movimientos append-only y saldos conciliables. |
 | `V14` | `LOG-T02` | Esquema objetivo `logistica`, maestros logisticos, documentos, cotizaciones, ordenes, recepciones e inventario; migracion legacy como `LEGACY_DEMO`. | Conteos migrados, claves legacy trazables, indices por bandeja y origen. |
 | `V15` | `LOG-T03` | Trazabilidad desde requerimientos legacy runtime hacia lineas de Cuadro aprobadas y vista unificada de origen. | FK a Cuadro/Platform, snapshot de saldo disponible e indice por `needs_line_id`. |
+| `V16` | `LOG-T04` | Enlace entre requerimientos aprobados y controles presupuestales de precompromiso. | FK unica a `presupuesto.budget_controls`, vista de trazabilidad y bloqueo de aprobados desde Cuadro sin precompromiso. |
 
 ## Validacion automatizada
 
