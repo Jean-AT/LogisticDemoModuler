@@ -2,6 +2,7 @@ package com.logistica.demo.logistica.compras.domain;
 
 import com.logistica.demo.maestros.domain.Almacen;
 import com.logistica.demo.maestros.domain.Item;
+import com.logistica.demo.logistica.requerimientos.domain.RequerimientoDetalle;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -38,6 +39,10 @@ public class OrdenCompraDetalle {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "almacen_id", nullable = false)
     private Almacen almacen;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "requerimiento_detalle_id")
+    private RequerimientoDetalle requerimientoDetalle;
 
     @Column(nullable = false)
     private Integer cantidad;

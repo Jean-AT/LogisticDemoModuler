@@ -44,9 +44,20 @@ public class OrdenCompra extends AuditableEntity {
     @JoinColumn(name = "requerimiento_id", nullable = false, unique = true)
     private Requerimiento requerimiento;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "adjudicacion_id")
+    private Adjudicacion adjudicacion;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "proveedor_id", nullable = false)
     private Proveedor proveedor;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private EstadoOrdenCompra estado = EstadoOrdenCompra.GENERADA;
+
+    @Column(name = "budget_control_id")
+    private Long budgetControlId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 3)
@@ -57,6 +68,11 @@ public class OrdenCompra extends AuditableEntity {
 
     @Column(nullable = false)
     private LocalDateTime generatedAt;
+
+    private LocalDateTime approvedAt;
+
+    @Column(length = 100)
+    private String approvedBy;
 
     @Column(nullable = false, precision = 18, scale = 2)
     private BigDecimal subtotal;

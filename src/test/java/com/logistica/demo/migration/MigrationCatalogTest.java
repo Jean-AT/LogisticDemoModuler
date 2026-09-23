@@ -200,4 +200,15 @@ class MigrationCatalogTest {
         assertTrue(sql.contains("logistica_demo.adjudicaciones"));
         assertTrue(sql.contains("LOG-T05 validation failed"));
     }
+
+    @Test
+    void shouldApprovePurchaseOrdersFromAwardsInV18() throws IOException {
+        String sql = Files.readString(MIGRATION_DIRECTORY.resolve("V18__approve_purchase_orders_from_awards.sql"));
+
+        assertTrue(sql.contains("adjudicacion_id"));
+        assertTrue(sql.contains("budget_control_id"));
+        assertTrue(sql.contains("requerimiento_detalle_id"));
+        assertTrue(sql.contains("ck_oc_approval_state"));
+        assertTrue(sql.contains("LOG-T06 validation failed"));
+    }
 }

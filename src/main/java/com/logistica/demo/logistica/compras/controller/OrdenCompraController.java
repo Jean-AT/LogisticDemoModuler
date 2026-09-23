@@ -43,6 +43,19 @@ public class OrdenCompraController {
         return ordenCompraService.generarDesdeRequerimiento(requerimientoId);
     }
 
+    @PostMapping("/desde-adjudicacion/{adjudicacionId}")
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAnyRole('COMPRAS', 'ADMIN')")
+    public OrdenCompraResponse generarDesdeAdjudicacion(@PathVariable Long adjudicacionId) {
+        return ordenCompraService.generarDesdeAdjudicacion(adjudicacionId);
+    }
+
+    @PostMapping("/{id}/aprobar")
+    @PreAuthorize("hasAnyRole('APROBADOR', 'ADMIN')")
+    public OrdenCompraResponse aprobar(@PathVariable Long id) {
+        return ordenCompraService.aprobar(id);
+    }
+
     @GetMapping
     public PageResponse<OrdenCompraResponse> listar(
             @RequestParam(required = false) String numero,

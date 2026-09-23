@@ -12,6 +12,8 @@ public interface OrdenCompraRepository extends JpaRepository<OrdenCompra, Long>,
 
     Optional<OrdenCompra> findByRequerimientoId(Long requerimientoId);
 
+    Optional<OrdenCompra> findByAdjudicacionId(Long adjudicacionId);
+
     List<OrdenCompra> findAllByOrderByGeneratedAtDesc();
 
     long countByGeneratedAtBetween(LocalDateTime inicio, LocalDateTime fin);

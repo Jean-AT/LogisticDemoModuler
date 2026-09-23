@@ -60,7 +60,7 @@ Las tareas se ejecutan en el orden indicado. Una tarea posterior puede comenzar 
 | 403 | `LOG-T03` Crear requerimiento desde linea de Cuadro y controlar cantidad disponible. | LOG-RF02 | LOG-T02 | COMPLETADA |
 | 404 | `LOG-T04` Integrar aprobacion de area y precompromiso. | LOG-RF03, LOG-RF04 | LOG-T03, PRE-T05 | COMPLETADA |
 | 405 | `LOG-T05` Implementar cotizaciones, comparacion y adjudicacion. | LOG-RF05 | LOG-T04 | COMPLETADA |
-| 406 | `LOG-T06` Generar y aprobar OC desde adjudicacion, comprometiendo presupuesto. | LOG-RF06, LOG-RF07 | LOG-T05 | PENDIENTE |
+| 406 | `LOG-T06` Generar y aprobar OC desde adjudicacion, comprometiendo presupuesto. | LOG-RF06, LOG-RF07 | LOG-T05 | DONE |
 | 407 | `LOG-T07` Implementar recepcion parcial/total y reversion. | LOG-RF08 | LOG-T06 | PENDIENTE |
 | 408 | `LOG-T08` Implementar kardex y proyeccion de stock. | LOG-RF09 | LOG-T07 | PENDIENTE |
 | 409 | `LOG-T09` Completar consultas, dashboards API, PDFs y trazabilidad. | LOG-RF01-LOG-RF10 | LOG-T08 | PENDIENTE |
