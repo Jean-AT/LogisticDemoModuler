@@ -280,6 +280,8 @@ public class OrdenCompraService {
                                 detalle.getAlmacen().getCode(),
                                 detalle.getAlmacen().getName(),
                                 detalle.getCantidad(),
+                                detalle.getCantidadRecibida(),
+                                detalle.getCantidad() - detalle.getCantidadRecibida(),
                                 detalle.getPrecioUnitario(),
                                 detalle.getSubtotalLinea()))
                         .toList(),

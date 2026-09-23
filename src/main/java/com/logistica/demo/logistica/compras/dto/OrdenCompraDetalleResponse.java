@@ -11,6 +11,8 @@ public record OrdenCompraDetalleResponse(
         String almacenCode,
         String almacenName,
         Integer cantidad,
+        Integer cantidadRecibida,
+        Integer cantidadPendiente,
         BigDecimal precioUnitario,
         BigDecimal subtotalLinea) {
 }

@@ -211,4 +211,15 @@ class MigrationCatalogTest {
         assertTrue(sql.contains("ck_oc_approval_state"));
         assertTrue(sql.contains("LOG-T06 validation failed"));
     }
+
+    @Test
+    void shouldCreateWarehouseReceiptsRuntimeInV19() throws IOException {
+        String sql = Files.readString(MIGRATION_DIRECTORY.resolve("V19__create_warehouse_receipts_runtime.sql"));
+
+        assertTrue(sql.contains("cantidad_recibida"));
+        assertTrue(sql.contains("logistica_demo.recepciones_almacen"));
+        assertTrue(sql.contains("logistica_demo.recepcion_almacen_detalles"));
+        assertTrue(sql.contains("'PARCIALMENTE_RECIBIDA', 'RECIBIDA'"));
+        assertTrue(sql.contains("LOG-T07 validation failed"));
+    }
 }

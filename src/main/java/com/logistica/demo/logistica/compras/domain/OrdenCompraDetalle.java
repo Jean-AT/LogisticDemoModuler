@@ -47,6 +47,9 @@ public class OrdenCompraDetalle {
     @Column(nullable = false)
     private Integer cantidad;
 
+    @Column(nullable = false)
+    private Integer cantidadRecibida = 0;
+
     @Column(nullable = false, precision = 18, scale = 2)
     private BigDecimal precioUnitario;
 

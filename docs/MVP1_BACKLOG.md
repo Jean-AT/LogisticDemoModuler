@@ -61,7 +61,7 @@ Las tareas se ejecutan en el orden indicado. Una tarea posterior puede comenzar 
 | 404 | `LOG-T04` Integrar aprobacion de area y precompromiso. | LOG-RF03, LOG-RF04 | LOG-T03, PRE-T05 | COMPLETADA |
 | 405 | `LOG-T05` Implementar cotizaciones, comparacion y adjudicacion. | LOG-RF05 | LOG-T04 | COMPLETADA |
 | 406 | `LOG-T06` Generar y aprobar OC desde adjudicacion, comprometiendo presupuesto. | LOG-RF06, LOG-RF07 | LOG-T05 | DONE |
-| 407 | `LOG-T07` Implementar recepcion parcial/total y reversion. | LOG-RF08 | LOG-T06 | PENDIENTE |
+| 407 | `LOG-T07` Implementar recepcion parcial/total y reversion. | LOG-RF08 | LOG-T06 | DONE |
 | 408 | `LOG-T08` Implementar kardex y proyeccion de stock. | LOG-RF09 | LOG-T07 | PENDIENTE |
 | 409 | `LOG-T09` Completar consultas, dashboards API, PDFs y trazabilidad. | LOG-RF01-LOG-RF10 | LOG-T08 | PENDIENTE |
 | 410 | `LOG-T10` Completar pruebas de dominio, API y migracion. | LOG-RF01-LOG-RF10 | LOG-T09 | PENDIENTE |
