@@ -189,4 +189,15 @@ class MigrationCatalogTest {
         assertTrue(sql.contains("logistica.requisition_budget_traceability"));
         assertTrue(sql.contains("LOG-T04 validation failed"));
     }
+
+    @Test
+    void shouldCreateLegacyRuntimeQuotationsInV17() throws IOException {
+        String sql = Files.readString(MIGRATION_DIRECTORY.resolve("V17__create_legacy_runtime_quotations.sql"));
+
+        assertTrue(sql.contains("logistica_demo.cotizacion_procesos"));
+        assertTrue(sql.contains("logistica_demo.cotizacion_proveedores"));
+        assertTrue(sql.contains("logistica_demo.cotizacion_proveedor_detalles"));
+        assertTrue(sql.contains("logistica_demo.adjudicaciones"));
+        assertTrue(sql.contains("LOG-T05 validation failed"));
+    }
 }

@@ -126,3 +126,5 @@ Para `LOG-T02`, `MigrationCatalogTest` valida `V14__create_logistics_model_and_m
 Para `LOG-T03`, `RequerimientoServiceTest` cubre la creacion de requerimientos desde una linea de Cuadro, copiando trazabilidad y rechazando cantidades mayores al saldo disponible. `MigrationCatalogTest` valida `V15__link_legacy_requisitions_to_needs.sql` con FK a Cuadro, snapshot de disponibilidad y vista `logistica.requisition_need_traceability`.
 
 Para `LOG-T04`, `AprobacionServiceTest` valida que aprobar un requerimiento originado en Cuadro cree un precompromiso presupuestal mensual, guarde el `budgetControlId` y no precomprometa cuando se observa. `MigrationCatalogTest` valida `V16__link_requisitions_to_budget_controls.sql` con FK a controles presupuestales y la regla `LOG-T04 validation failed`.
+
+Para `LOG-T05`, `CotizacionServiceTest` cubre apertura de proceso desde requerimiento aprobado, registro de una oferta completa, cierre de comparacion, adjudicacion de una cotizacion cerrada y rechazo de adjudicacion cuando el proceso sigue abierto. `MigrationCatalogTest` valida `V17__create_legacy_runtime_quotations.sql`.
