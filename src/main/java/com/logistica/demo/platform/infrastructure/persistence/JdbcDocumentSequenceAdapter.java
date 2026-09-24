@@ -3,7 +3,6 @@ package com.logistica.demo.platform.infrastructure.persistence;
 import com.logistica.demo.platform.api.DocumentNumber;
 import com.logistica.demo.platform.api.DocumentSequencePort;
 import java.util.Locale;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -102,20 +101,29 @@ public class JdbcDocumentSequenceAdapter implements DocumentSequencePort {
     }
 
     private void ensureSequenceExists(Long companyId, int fiscalYear, String documentType) {
-        try {
-            jdbcTemplate.update(
-                    """
-                    INSERT INTO platform.document_sequences (
-                        company_id, fiscal_year, document_type, prefix, current_value
-                    ) VALUES (?, ?, ?, ?, 0)
-                    """,
-                    companyId,
-                    fiscalYear,
-                    documentType,
-                    documentType + "-" + fiscalYear);
-        } catch (DuplicateKeyException ignored) {
-            // Created by another transaction between the read and insert.
+        Integer existing = jdbcTemplate.queryForObject(
+                """
+                SELECT COUNT(*)
+                FROM platform.document_sequences
+                WHERE company_id = ? AND fiscal_year = ? AND document_type = ?
+                """,
+                Integer.class,
+                companyId,
+                fiscalYear,
+                documentType);
+        if (existing != null && existing > 0) {
+            return;
         }
+        jdbcTemplate.update(
+                """
+                INSERT INTO platform.document_sequences (
+                    company_id, fiscal_year, document_type, prefix, current_value
+                ) VALUES (?, ?, ?, ?, 0)
+                """,
+                companyId,
+                fiscalYear,
+                documentType,
+                documentType + "-" + fiscalYear);
     }
 
     private void validate(Long companyId, int fiscalYear) {

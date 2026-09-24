@@ -6,6 +6,7 @@ import com.logistica.demo.presupuesto.api.BudgetPlanUseCase;
 import com.logistica.demo.presupuesto.api.GenerateBudgetPlanCommand;
 import com.logistica.demo.presupuesto.api.ReviewBudgetPlanCommand;
 import com.logistica.demo.shared.exception.BusinessRuleException;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -61,7 +62,7 @@ public class BudgetPlanJdbcAdapter implements BudgetPlanUseCase {
                 """,
                 piaExerciseId,
                 command.reviewer(),
-                Instant.now(),
+                timestamp(Instant.now()),
                 command.notes(),
                 piaExerciseId);
         return new BudgetPlanResult(piaExerciseId, findExercise(command.companyId(), command.fiscalYear(), "PIM"), countLines(piaExerciseId), true);
@@ -94,9 +95,9 @@ public class BudgetPlanJdbcAdapter implements BudgetPlanUseCase {
                 WHERE id = ?
                   AND status = 'DRAFT'
                 """,
-                now,
+                timestamp(now),
                 command.actor(),
-                now,
+                timestamp(now),
                 piaExerciseId);
 
         if (existingPim == null) {
@@ -121,11 +122,11 @@ public class BudgetPlanJdbcAdapter implements BudgetPlanUseCase {
                 fiscalYear,
                 type,
                 status,
-                "APPROVED".equals(status) ? now : null,
+                "APPROVED".equals(status) ? timestamp(now) : null,
                 actor,
-                now,
+                timestamp(now),
                 actor,
-                now);
+                timestamp(now));
     }
 
     private void copyLines(long sourceExerciseId, long targetExerciseId, String actor, Instant now) {
@@ -158,9 +159,9 @@ public class BudgetPlanJdbcAdapter implements BudgetPlanUseCase {
                 """,
                 targetExerciseId,
                 actor,
-                now,
+                timestamp(now),
                 actor,
-                now,
+                timestamp(now),
                 sourceExerciseId,
                 targetExerciseId);
     }
@@ -197,7 +198,7 @@ public class BudgetPlanJdbcAdapter implements BudgetPlanUseCase {
                 sourceId,
                 sourceNumber,
                 actor,
-                now,
+                timestamp(now),
                 exerciseId,
                 sourceType,
                 sourceId);
@@ -262,5 +263,9 @@ public class BudgetPlanJdbcAdapter implements BudgetPlanUseCase {
                 Integer.class,
                 exerciseId);
         return lines == null ? 0 : lines;
+    }
+
+    private static Timestamp timestamp(Instant value) {
+        return Timestamp.from(value);
     }
 }

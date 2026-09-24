@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.HexFormat;
@@ -106,8 +107,8 @@ public class RefreshTokenService {
                 id,
                 userId,
                 hash(rawToken),
-                issuedAt,
-                expiresAt);
+                Timestamp.from(issuedAt),
+                Timestamp.from(expiresAt));
         return new IssuedRefreshToken(id, rawToken);
     }
 

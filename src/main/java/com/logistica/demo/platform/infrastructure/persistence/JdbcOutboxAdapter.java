@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.logistica.demo.sharedkernel.event.DomainEvent;
 import com.logistica.demo.sharedkernel.event.DomainEventPublisher;
 import com.logistica.demo.sharedkernel.event.OutboxPort;
+import java.sql.Timestamp;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,7 +38,7 @@ public class JdbcOutboxAdapter implements OutboxPort, DomainEventPublisher {
                 event.aggregateId(),
                 event.eventType(),
                 toJson(event),
-                event.occurredAt());
+                Timestamp.from(event.occurredAt()));
     }
 
     @Override

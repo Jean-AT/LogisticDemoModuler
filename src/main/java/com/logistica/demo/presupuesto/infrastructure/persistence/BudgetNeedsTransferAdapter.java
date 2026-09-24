@@ -24,7 +24,7 @@ import com.logistica.demo.sharedkernel.idempotency.StoredResponse;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.PreparedStatement;
-import java.sql.Statement;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.HexFormat;
 import java.util.List;
@@ -150,11 +150,11 @@ public class BudgetNeedsTransferAdapter implements TransferNeedsToBudgetUseCase,
                 """,
                 companyId,
                 fiscalYear,
-                now,
+                timestamp(now),
                 actor,
-                now,
+                timestamp(now),
                 actor,
-                now,
+                timestamp(now),
                 companyId,
                 fiscalYear);
         return jdbcTemplate.queryForObject(
@@ -179,7 +179,7 @@ public class BudgetNeedsTransferAdapter implements TransferNeedsToBudgetUseCase,
                         created_by, created_at, updated_by, updated_at
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
-                    Statement.RETURN_GENERATED_KEYS);
+                    new String[] {"id"});
             ps.setLong(1, command.consolidationId());
             ps.setLong(2, command.companyId());
             ps.setInt(3, command.fiscalYear());
@@ -187,11 +187,11 @@ public class BudgetNeedsTransferAdapter implements TransferNeedsToBudgetUseCase,
             ps.setString(5, command.idempotencyKey().value());
             ps.setInt(6, command.lines().size());
             ps.setString(7, command.actor());
-            ps.setObject(8, now);
+            ps.setTimestamp(8, timestamp(now));
             ps.setString(9, command.actor());
-            ps.setObject(10, now);
+            ps.setTimestamp(10, timestamp(now));
             ps.setString(11, command.actor());
-            ps.setObject(12, now);
+            ps.setTimestamp(12, timestamp(now));
             return ps;
         }, keyHolder);
         return generatedId(keyHolder);
@@ -234,9 +234,9 @@ public class BudgetNeedsTransferAdapter implements TransferNeedsToBudgetUseCase,
                 dimension.expenseClassifierId(),
                 currency.name(),
                 actor,
-                now,
+                timestamp(now),
                 actor,
-                now,
+                timestamp(now),
                 exerciseId,
                 dimension.month(),
                 dimension.costCenterId(),
@@ -275,7 +275,7 @@ public class BudgetNeedsTransferAdapter implements TransferNeedsToBudgetUseCase,
                 WHERE id = ?
                 """,
                 amount.amount(),
-                Instant.now(),
+                timestamp(Instant.now()),
                 budgetLineId);
     }
 
@@ -293,7 +293,7 @@ public class BudgetNeedsTransferAdapter implements TransferNeedsToBudgetUseCase,
                 amount.amount(),
                 amount.currency().name(),
                 command.actor(),
-                now);
+                timestamp(now));
     }
 
     private void insertTransferLine(
@@ -413,5 +413,9 @@ public class BudgetNeedsTransferAdapter implements TransferNeedsToBudgetUseCase,
             throw new IllegalStateException("No se pudo obtener el id generado");
         }
         return key.longValue();
+    }
+
+    private static Timestamp timestamp(Instant value) {
+        return Timestamp.from(value);
     }
 }

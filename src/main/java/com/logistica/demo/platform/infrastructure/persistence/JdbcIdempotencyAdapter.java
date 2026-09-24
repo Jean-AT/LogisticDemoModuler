@@ -7,6 +7,7 @@ import com.logistica.demo.sharedkernel.idempotency.IdempotencyPort;
 import com.logistica.demo.sharedkernel.idempotency.StoredResponse;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Locale;
@@ -51,8 +52,8 @@ public class JdbcIdempotencyAdapter implements IdempotencyPort {
                     scope,
                     key.value(),
                     hash,
-                    now,
-                    now.plus(EXPIRATION));
+                    Timestamp.from(now),
+                    Timestamp.from(now.plus(EXPIRATION)));
             return new IdempotencyClaim(IdempotencyClaimStatus.ACQUIRED, claimId, null);
         } catch (DuplicateKeyException ignored) {
             return readExisting(scope, key.value(), hash);
@@ -76,7 +77,7 @@ public class JdbcIdempotencyAdapter implements IdempotencyPort {
                 response.statusCode(),
                 response.contentType(),
                 response.body(),
-                completedAt == null ? Instant.now() : completedAt,
+                Timestamp.from(completedAt == null ? Instant.now() : completedAt),
                 claimId);
         if (updated == 0) {
             throw new IllegalStateException("La reserva de idempotencia no esta en procesamiento");

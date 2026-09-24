@@ -22,7 +22,7 @@ import java.math.BigDecimal;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.PreparedStatement;
-import java.sql.Statement;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.HexFormat;
 import java.util.List;
@@ -108,7 +108,7 @@ public class BudgetControlJdbcAdapter implements BudgetControlUseCase {
                     """,
                     allocation.amount().amount(),
                     command.actor(),
-                    now,
+                    Timestamp.from(now),
                     state.budgetLineId());
             insertControlLine(controlId, state.budgetLineId(), allocation.amount(), allocation.amount().amount(), BigDecimal.ZERO);
             insertMovement(state.budgetLineId(), "PRECOMMITMENT", command.source(), allocation.amount(), command.idempotencyKey(), command.actor(), now);
@@ -149,7 +149,7 @@ public class BudgetControlJdbcAdapter implements BudgetControlUseCase {
                     allocation.amount().amount(),
                     allocation.amount().amount(),
                     command.actor(),
-                    now,
+                    Timestamp.from(now),
                     state.budgetLineId());
             jdbcTemplate.update(
                     """
@@ -205,7 +205,7 @@ public class BudgetControlJdbcAdapter implements BudgetControlUseCase {
                     releasePrecommit,
                     releaseCommit,
                     command.actor(),
-                    now,
+                    Timestamp.from(now),
                     state.budgetLineId());
             jdbcTemplate.update(
                     """
@@ -282,7 +282,7 @@ public class BudgetControlJdbcAdapter implements BudgetControlUseCase {
                 amount.currency().name(),
                 idempotencyKey.value() + ":" + movementType,
                 actor,
-                now);
+                Timestamp.from(now));
     }
 
     private long insertControl(DocumentReference source, BudgetControlStatus status, String actor, Instant now) {
@@ -295,15 +295,15 @@ public class BudgetControlJdbcAdapter implements BudgetControlUseCase {
                         status, actor, created_at, updated_at
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     """,
-                    Statement.RETURN_GENERATED_KEYS);
+                    new String[] {"id"});
             ps.setString(1, source.module());
             ps.setString(2, source.type());
             ps.setLong(3, source.id());
             ps.setString(4, source.number());
             ps.setString(5, status.name());
             ps.setString(6, actor);
-            ps.setObject(7, now);
-            ps.setObject(8, now);
+            ps.setTimestamp(7, Timestamp.from(now));
+            ps.setTimestamp(8, Timestamp.from(now));
             return ps;
         }, keyHolder);
         Number key = keyHolder.getKey();
@@ -388,7 +388,7 @@ public class BudgetControlJdbcAdapter implements BudgetControlUseCase {
                 """,
                 status.name(),
                 actor,
-                now,
+                Timestamp.from(now),
                 controlId);
     }
 
