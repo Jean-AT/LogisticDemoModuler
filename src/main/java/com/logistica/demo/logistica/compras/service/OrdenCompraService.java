@@ -89,6 +89,7 @@ public class OrdenCompraService {
         if (ordenCompraRepository.findByRequerimientoId(requerimientoId).isPresent()) {
             throw new BusinessRuleException("Ya existe una orden de compra para este requerimiento.");
         }
+        requireBudgetPrecommit(requerimiento);
 
         OrdenCompra ordenCompra = new OrdenCompra();
         ordenCompra.setRequerimiento(requerimiento);
@@ -144,9 +145,7 @@ public class OrdenCompraService {
         if (requerimiento.getEstado() != EstadoRequerimiento.APROBADO) {
             throw new BusinessRuleException("Solo se puede generar OC desde requerimientos APROBADOS.");
         }
-        if (requerimiento.getNeedsLineId() != null && requerimiento.getBudgetControlId() == null) {
-            throw new BusinessRuleException("El requerimiento no tiene precompromiso presupuestal.");
-        }
+        requireBudgetPrecommit(requerimiento);
         if (ordenCompraRepository.findByAdjudicacionId(adjudicacionId).isPresent()) {
             throw new BusinessRuleException("Ya existe una orden de compra para esta adjudicacion.");
         }
@@ -208,9 +207,7 @@ public class OrdenCompraService {
             throw new BusinessRuleException("Solo se puede aprobar una orden de compra GENERADA.");
         }
 
-        if (ordenCompra.getRequerimiento().getNeedsLineId() != null) {
-            commitBudget(ordenCompra);
-        }
+        commitBudget(ordenCompra);
 
         ordenCompra.setEstado(EstadoOrdenCompra.APROBADA);
         ordenCompra.setApprovedAt(LocalDateTime.now());
@@ -342,6 +339,13 @@ public class OrdenCompraService {
                 new IdempotencyKey("logistica-orden-compra-commit-" + ordenCompra.getId()),
                 currentUserService.getUsername()));
         ordenCompra.setBudgetControlId(result.budgetControlId());
+    }
+
+    private void requireBudgetPrecommit(Requerimiento requerimiento) {
+        if (requerimiento.getBudgetControlId() == null) {
+            throw new BusinessRuleException(
+                    "El requerimiento no tiene precompromiso presupuestal. No se puede iniciar compra sin presupuesto reservado.");
+        }
     }
 
     private List<BudgetAllocation> buildBudgetAllocations(OrdenCompra ordenCompra) {

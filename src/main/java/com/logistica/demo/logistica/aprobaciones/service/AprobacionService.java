@@ -120,11 +120,12 @@ public class AprobacionService {
     }
 
     private void precommitBudgetIfNeeded(Requerimiento requerimiento) {
-        if (requerimiento.getNeedsLineId() == null) {
-            return;
-        }
         if (requerimiento.getBudgetControlId() != null) {
             return;
+        }
+        if (requerimiento.getNeedsLineId() == null) {
+            throw new BusinessRuleException(
+                    "El requerimiento no tiene trazabilidad presupuestal. Cree el requerimiento desde Cuadro o vincule presupuesto antes de aprobar.");
         }
         if (requerimiento.getCompanyId() == null || requerimiento.getFiscalYear() == null) {
             throw new BusinessRuleException("El requerimiento no tiene trazabilidad presupuestal completa.");

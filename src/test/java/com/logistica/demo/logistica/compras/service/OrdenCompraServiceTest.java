@@ -1,8 +1,10 @@
 package com.logistica.demo.logistica.compras.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -33,6 +35,7 @@ import com.logistica.demo.presupuesto.api.BudgetControlResult;
 import com.logistica.demo.presupuesto.api.BudgetControlStatus;
 import com.logistica.demo.presupuesto.api.BudgetControlUseCase;
 import com.logistica.demo.presupuesto.api.CommitBudgetCommand;
+import com.logistica.demo.shared.exception.BusinessRuleException;
 import com.logistica.demo.shared.security.CurrentUserService;
 import com.logistica.demo.sharedkernel.domain.Money;
 import com.logistica.demo.sharedkernel.domain.Moneda;
@@ -132,6 +135,54 @@ class OrdenCompraServiceTest {
         assertEquals(new BigDecimal("9.50"), command.allocations().get(1).amount().amount());
         assertEquals(EstadoOrdenCompra.APROBADA, response.estado());
         assertEquals("aprobador", response.approvedBy());
+    }
+
+    @Test
+    void shouldRejectPurchaseOrderGenerationWhenRequirementHasNoBudgetPrecommit() {
+        Requerimiento requerimiento = requerimiento();
+        requerimiento.setBudgetControlId(null);
+        when(requerimientoRepository.findById(90L)).thenReturn(Optional.of(requerimiento));
+        when(ordenCompraRepository.findByRequerimientoId(90L)).thenReturn(Optional.empty());
+
+        BusinessRuleException exception = assertThrows(
+                BusinessRuleException.class,
+                () -> service.generarDesdeRequerimiento(90L));
+
+        assertEquals(
+                "El requerimiento no tiene precompromiso presupuestal. No se puede iniciar compra sin presupuesto reservado.",
+                exception.getMessage());
+        verify(ordenCompraRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldRejectAwardedPurchaseOrderGenerationWhenRequirementHasNoBudgetPrecommit() {
+        Adjudicacion adjudicacion = adjudicacion();
+        adjudicacion.getProceso().getRequerimiento().setBudgetControlId(null);
+        when(adjudicacionRepository.findById(400L)).thenReturn(Optional.of(adjudicacion));
+
+        BusinessRuleException exception = assertThrows(
+                BusinessRuleException.class,
+                () -> service.generarDesdeAdjudicacion(400L));
+
+        assertEquals(
+                "El requerimiento no tiene precompromiso presupuestal. No se puede iniciar compra sin presupuesto reservado.",
+                exception.getMessage());
+        verify(ordenCompraRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldRejectPurchaseOrderApprovalWhenBudgetControlIsMissing() {
+        OrdenCompra ordenCompra = ordenCompra();
+        ordenCompra.setBudgetControlId(null);
+        ordenCompra.getRequerimiento().setBudgetControlId(null);
+        when(ordenCompraRepository.findById(600L)).thenReturn(Optional.of(ordenCompra));
+
+        BusinessRuleException exception = assertThrows(
+                BusinessRuleException.class,
+                () -> service.aprobar(600L));
+
+        assertEquals("La orden de compra no tiene control presupuestal para comprometer.", exception.getMessage());
+        verify(budgetControlUseCase, never()).commit(any());
     }
 
     private Adjudicacion adjudicacion() {

@@ -1,6 +1,7 @@
 package com.logistica.demo.logistica.aprobaciones.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -23,6 +24,7 @@ import com.logistica.demo.presupuesto.api.BudgetControlResult;
 import com.logistica.demo.presupuesto.api.BudgetControlStatus;
 import com.logistica.demo.presupuesto.api.BudgetControlUseCase;
 import com.logistica.demo.presupuesto.api.PrecommitBudgetCommand;
+import com.logistica.demo.shared.exception.BusinessRuleException;
 import com.logistica.demo.shared.security.CurrentUserService;
 import com.logistica.demo.sharedkernel.domain.Money;
 import com.logistica.demo.sharedkernel.domain.Moneda;
@@ -102,6 +104,22 @@ class AprobacionServiceTest {
         assertEquals(EstadoRequerimiento.OBSERVADO, requerimiento.getEstado());
     }
 
+    @Test
+    void approveLegacyRequirementWithoutBudgetTraceabilityIsRejected() {
+        Requerimiento requerimiento = legacyRequirement();
+        when(requerimientoRepository.findById(91L)).thenReturn(Optional.of(requerimiento));
+
+        BusinessRuleException exception = assertThrows(
+                BusinessRuleException.class,
+                () -> service.aprobar(91L, new AprobacionDecisionRequest("ok")));
+
+        assertEquals(
+                "El requerimiento no tiene trazabilidad presupuestal. Cree el requerimiento desde Cuadro o vincule presupuesto antes de aprobar.",
+                exception.getMessage());
+        verify(budgetControlUseCase, never()).precommit(any());
+        assertEquals(EstadoRequerimiento.ENVIADO, requerimiento.getEstado());
+    }
+
     private Requerimiento requerimientoFromNeeds() {
         Proveedor proveedor = new Proveedor();
         proveedor.setId(11L);
@@ -137,6 +155,40 @@ class AprobacionServiceTest {
         requerimiento.setFiscalYear(2026);
         requerimiento.setNeedsPlanId(44L);
         requerimiento.setNeedsLineId(22L);
+        requerimiento.addDetalle(detalle);
+        return requerimiento;
+    }
+
+    private Requerimiento legacyRequirement() {
+        Proveedor proveedor = new Proveedor();
+        proveedor.setId(11L);
+        proveedor.setCode("PRV-001");
+        proveedor.setName("Proveedor Demo");
+
+        Item item = new Item();
+        item.setId(77L);
+        item.setCode("SERV-001");
+        item.setName("Servicio Demo");
+
+        Almacen almacen = new Almacen();
+        almacen.setId(33L);
+        almacen.setCode("ALM-001");
+        almacen.setName("Almacen Demo");
+
+        RequerimientoDetalle detalle = new RequerimientoDetalle();
+        detalle.setItem(item);
+        detalle.setAlmacen(almacen);
+        detalle.setCantidad(4);
+        detalle.setPrecioUnitarioEstimado(new BigDecimal("10.00"));
+        detalle.setSubtotalLinea(new BigDecimal("40.00"));
+
+        Requerimiento requerimiento = new Requerimiento();
+        requerimiento.setId(91L);
+        requerimiento.setNumero("REQ-000091");
+        requerimiento.setDescripcion("Compra legacy sin presupuesto");
+        requerimiento.setProveedor(proveedor);
+        requerimiento.setMoneda(Moneda.PEN);
+        requerimiento.setEstado(EstadoRequerimiento.ENVIADO);
         requerimiento.addDetalle(detalle);
         return requerimiento;
     }
