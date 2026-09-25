@@ -3,6 +3,8 @@ package com.logistica.demo.shared.report;
 import com.logistica.demo.logistica.aprobaciones.dto.AprobacionResponse;
 import com.logistica.demo.logistica.compras.dto.OrdenCompraDetalleResponse;
 import com.logistica.demo.logistica.compras.dto.OrdenCompraResponse;
+import com.logistica.demo.logistica.consultas.dto.LogisticsTraceabilityEventResponse;
+import com.logistica.demo.logistica.consultas.dto.LogisticsTraceabilityResponse;
 import com.logistica.demo.logistica.requerimientos.dto.RequerimientoDetalleResponse;
 import com.logistica.demo.logistica.requerimientos.dto.RequerimientoEstadoHistorialResponse;
 import com.logistica.demo.logistica.requerimientos.dto.RequerimientoResponse;
@@ -211,6 +213,53 @@ public class PdfReportService {
             return output.toByteArray();
         } catch (IOException ex) {
             throw new IllegalStateException("No se pudo generar el PDF de la orden de compra.", ex);
+        }
+    }
+
+    public byte[] buildLogisticsTraceabilityPdf(
+            LogisticsTraceabilityResponse traceability,
+            PdfHeaderData headerData) {
+        try (PDDocument document = new PDDocument(); ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            DocumentWriter writer = new DocumentWriter(document);
+            writer.writeHeader(
+                    "TRAZABILIDAD LOGISTICA",
+                    traceability.requerimientoNumero(),
+                    headerData,
+                    List.of(
+                            "Empresa: " + reportProperties.companyName(),
+                            "Requerimiento: " + traceability.requerimientoNumero(),
+                            "Estado requerimiento: " + traceability.requerimientoEstado(),
+                            "Orden de compra: " + normalizeBlank(traceability.ordenCompraNumero())));
+
+            writer.writeSectionTitle("Resumen");
+            writer.writeLabelValue("Requerimiento ID", String.valueOf(traceability.requerimientoId()));
+            writer.writeLabelValue("Cuadro plan", traceability.needsPlanId() == null ? "-" : traceability.needsPlanId().toString());
+            writer.writeLabelValue("Linea de Cuadro", traceability.needsLineId() == null ? "-" : traceability.needsLineId().toString());
+            writer.writeLabelValue("Control presupuestal", traceability.budgetControlId() == null ? "-" : traceability.budgetControlId().toString());
+            writer.writeLabelValue("OC estado", normalizeBlank(traceability.ordenCompraEstado()));
+
+            writer.writeSectionTitle("Linea de tiempo");
+            if (traceability.events().isEmpty()) {
+                writer.writeSubLine("No hay eventos registrados.");
+            } else {
+                for (LogisticsTraceabilityEventResponse event : traceability.events()) {
+                    writer.writeBulletLine("%s | %s | %s".formatted(
+                            formatDateTime(event.occurredAt()),
+                            event.stage(),
+                            event.status()));
+                    writer.writeSubLine("Referencia: %s #%s | Actor: %s".formatted(
+                            normalizeBlank(event.referenceNumber()),
+                            event.referenceId(),
+                            normalizeBlank(event.actor())));
+                    writer.writeSubLine("Detalle: " + normalizeBlank(event.detail()));
+                }
+            }
+
+            writer.finish();
+            document.save(output);
+            return output.toByteArray();
+        } catch (IOException ex) {
+            throw new IllegalStateException("No se pudo generar el PDF de trazabilidad logistica.", ex);
         }
     }
 
