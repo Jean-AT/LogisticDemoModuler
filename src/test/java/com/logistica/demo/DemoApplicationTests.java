@@ -139,7 +139,7 @@ class DemoApplicationTests {
     }
 
     @Test
-    void shouldCompleteApprovalToPurchaseOrderFlow() throws Exception {
+    void shouldRejectLegacyApprovalWithoutBudgetTraceability() throws Exception {
         HttpResponse<String> createResult = send(
                 "POST",
                 "/api/requerimientos",
@@ -161,32 +161,17 @@ class DemoApplicationTests {
                 "aprobador",
                 "demo123");
         JsonNode aprobacion = objectMapper.readTree(aprobar.body());
-        assertEquals(200, aprobar.statusCode());
-        assertEquals("APROBADO", aprobacion.get("estado").asText());
-        assertEquals("APROBAR", aprobacion.get("aprobaciones").get(0).get("accion").asText());
-        assertEquals("aprobador", aprobacion.get("aprobaciones").get(0).get("usuario").asText());
-
-        HttpResponse<String> generarOc = send(
-                "POST",
-                "/api/ordenes-compra/desde-requerimiento/" + requerimientoId,
-                null,
-                "compras",
-                "demo123");
-        JsonNode orden = objectMapper.readTree(generarOc.body());
-        assertEquals(201, generarOc.statusCode());
-        assertTrue(orden.get("numero").asText().startsWith("OC-"));
-        assertEquals("USD", orden.get("moneda").asText());
-        assertDecimalEquals("3.35", orden.get("tipoCambio"));
-        assertDecimalEquals("200.02", orden.get("subtotal"));
-        assertDecimalEquals("36.00", orden.get("igv"));
-        assertDecimalEquals("236.02", orden.get("total"));
+        assertEquals(409, aprobar.statusCode());
+        assertEquals(
+                "El requerimiento no tiene trazabilidad presupuestal. Cree el requerimiento desde Cuadro o vincule presupuesto antes de aprobar.",
+                aprobacion.get("message").asText());
 
         HttpResponse<String> getRequerimiento = send("GET", "/api/requerimientos/" + requerimientoId, null, "solicitante", "demo123");
         JsonNode requerimientoFinal = objectMapper.readTree(getRequerimiento.body());
         assertEquals(200, getRequerimiento.statusCode());
-        assertEquals("CONVERTIDO_OC", requerimientoFinal.get("estado").asText());
-        assertTrue(requerimientoFinal.get("ordenCompra").get("numero").asText().startsWith("OC-"));
-        assertEquals(4, requerimientoFinal.get("historialEstados").size());
+        assertEquals("ENVIADO", requerimientoFinal.get("estado").asText());
+        assertTrue(!requerimientoFinal.has("ordenCompra") || requerimientoFinal.get("ordenCompra").isNull());
+        assertEquals(2, requerimientoFinal.get("historialEstados").size());
     }
 
     @Test
@@ -319,7 +304,7 @@ class DemoApplicationTests {
     }
 
     @Test
-    void shouldAllowApprovingObservedRequisitionAndKeepHistory() throws Exception {
+    void shouldAllowObservingAndCorrectingRequisitionWithoutBudgetImpact() throws Exception {
         HttpResponse<String> createResult = send(
                 "POST",
                 "/api/requerimientos",
@@ -339,22 +324,22 @@ class DemoApplicationTests {
         assertEquals(200, observar.statusCode());
         assertEquals("OBSERVADO", objectMapper.readTree(observar.body()).get("estado").asText());
 
-        HttpResponse<String> aprobar = send(
-                "POST",
-                "/api/aprobaciones/" + requerimientoId + "/aprobar",
-                "{\"comentario\":\"Sustento recibido\"}",
-                "aprobador",
+        HttpResponse<String> update = send(
+                "PUT",
+                "/api/requerimientos/" + requerimientoId,
+                buildRequisitionRequest("PEN", 2, "42.50"),
+                "solicitante",
                 "demo123");
-        JsonNode body = objectMapper.readTree(aprobar.body());
-        assertEquals(200, aprobar.statusCode());
-        assertEquals("APROBADO", body.get("estado").asText());
+        JsonNode body = objectMapper.readTree(update.body());
+        assertEquals(200, update.statusCode());
+        assertEquals("BORRADOR", body.get("estado").asText());
         assertEquals(4, body.get("historialEstados").size());
         assertEquals("OBSERVADO", body.get("historialEstados").get(3).get("estadoAnterior").asText());
-        assertEquals("APROBADO", body.get("historialEstados").get(3).get("estadoNuevo").asText());
+        assertEquals("BORRADOR", body.get("historialEstados").get(3).get("estadoNuevo").asText());
     }
 
     @Test
-    void shouldRejectInvalidStateTransitionAfterApproval() throws Exception {
+    void shouldRejectLegacyApprovalAndStillAllowRejectionFromSubmittedState() throws Exception {
         HttpResponse<String> createResult = send(
                 "POST",
                 "/api/requerimientos",
@@ -364,14 +349,13 @@ class DemoApplicationTests {
         long requerimientoId = objectMapper.readTree(createResult.body()).get("id").asLong();
 
         assertEquals(200, send("POST", "/api/requerimientos/" + requerimientoId + "/enviar", null, "solicitante", "demo123").statusCode());
-        assertEquals(
-                200,
-                send(
-                        "POST",
-                        "/api/aprobaciones/" + requerimientoId + "/aprobar",
-                        "{\"comentario\":\"OK\"}",
-                        "aprobador",
-                        "demo123").statusCode());
+        HttpResponse<String> aprobar = send(
+                "POST",
+                "/api/aprobaciones/" + requerimientoId + "/aprobar",
+                "{\"comentario\":\"OK\"}",
+                "aprobador",
+                "demo123");
+        assertEquals(409, aprobar.statusCode());
 
         HttpResponse<String> rechazar = send(
                 "POST",
@@ -379,10 +363,8 @@ class DemoApplicationTests {
                 "{\"comentario\":\"Ya no aplica\"}",
                 "aprobador",
                 "demo123");
-        assertEquals(409, rechazar.statusCode());
-        assertEquals(
-                "Solo se puede decidir un requerimiento en estado ENVIADO u OBSERVADO.",
-                objectMapper.readTree(rechazar.body()).get("message").asText());
+        assertEquals(200, rechazar.statusCode());
+        assertEquals("RECHAZADO", objectMapper.readTree(rechazar.body()).get("estado").asText());
     }
 
     @Test
@@ -453,22 +435,12 @@ class DemoApplicationTests {
         long requerimientoId = created.get("id").asLong();
 
         assertEquals(200, send("POST", "/api/requerimientos/" + requerimientoId + "/enviar", null, "solicitante", "demo123").statusCode());
-        assertEquals(
-                200,
-                send(
-                        "POST",
-                        "/api/aprobaciones/" + requerimientoId + "/aprobar",
-                        "{\"comentario\":\"Listo para compra\"}",
-                        "aprobador",
-                        "demo123").statusCode());
-
-        HttpResponse<String> ordenCreate = send(
+        assertEquals(200, send(
                 "POST",
-                "/api/ordenes-compra/desde-requerimiento/" + requerimientoId,
-                null,
-                "compras",
-                "demo123");
-        long ordenId = objectMapper.readTree(ordenCreate.body()).get("id").asLong();
+                "/api/aprobaciones/" + requerimientoId + "/observar",
+                "{\"comentario\":\"Revisar sustento\"}",
+                "aprobador",
+                "demo123").statusCode());
 
         HttpResponse<byte[]> requerimientoPdf = sendBytes(
                 "GET",
@@ -493,18 +465,7 @@ class DemoApplicationTests {
         String aprobacionText = extractPdfText(aprobacionPdf.body());
         assertTrue(aprobacionText.contains("REPORTE DE APROBACION"));
         assertTrue(aprobacionText.contains("Gestionado por: aprobador"));
-
-        HttpResponse<byte[]> ordenPdf = sendBytes(
-                "GET",
-                "/api/ordenes-compra/" + ordenId + "/pdf",
-                null,
-                "compras",
-                "demo123");
-        assertEquals(200, ordenPdf.statusCode());
-        String ordenText = extractPdfText(ordenPdf.body());
-        assertTrue(ordenText.contains("ORDEN DE COMPRA"));
-        assertTrue(ordenText.contains("Compra generada por: compras"));
-        assertTrue(ordenText.contains("Empresa: Logistica Demo SAC"));
+        assertTrue(aprobacionText.contains("OBSERVAR"));
     }
 
     @Test

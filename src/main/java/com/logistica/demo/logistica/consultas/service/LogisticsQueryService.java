@@ -172,7 +172,7 @@ public class LogisticsQueryService {
                            oc.numero,
                            oc.approved_by,
                            oc.approved_at,
-                           'Control presupuestal ' || COALESCE(oc.budget_control_id::TEXT, '-')
+                           'Control presupuestal ' || COALESCE(CAST(oc.budget_control_id AS VARCHAR), '-')
                     FROM logistica_demo.ordenes_compra oc
                     WHERE oc.requerimiento_id = ?
                       AND oc.approved_at IS NOT NULL
