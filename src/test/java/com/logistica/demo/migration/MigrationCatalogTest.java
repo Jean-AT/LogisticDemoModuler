@@ -222,4 +222,15 @@ class MigrationCatalogTest {
         assertTrue(sql.contains("'PARCIALMENTE_RECIBIDA', 'RECIBIDA'"));
         assertTrue(sql.contains("LOG-T07 validation failed"));
     }
+
+    @Test
+    void shouldCreateLegacyInventoryKardexInV20() throws IOException {
+        String sql = Files.readString(MIGRATION_DIRECTORY.resolve("V20__create_legacy_inventory_kardex.sql"));
+
+        assertTrue(sql.contains("logistica_demo.kardex_movimientos"));
+        assertTrue(sql.contains("logistica_demo.stock_actual"));
+        assertTrue(sql.contains("ENTRADA_RECEPCION"));
+        assertTrue(sql.contains("REVERSA_RECEPCION"));
+        assertTrue(sql.contains("LOG-T08 validation failed"));
+    }
 }

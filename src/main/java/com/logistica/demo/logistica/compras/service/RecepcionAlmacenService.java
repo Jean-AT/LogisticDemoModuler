@@ -13,6 +13,7 @@ import com.logistica.demo.logistica.compras.dto.RecepcionLineaRequest;
 import com.logistica.demo.logistica.compras.dto.RecepcionReversionRequest;
 import com.logistica.demo.logistica.compras.repository.OrdenCompraRepository;
 import com.logistica.demo.logistica.compras.repository.RecepcionAlmacenRepository;
+import com.logistica.demo.logistica.inventario.service.InventoryService;
 import com.logistica.demo.shared.exception.BusinessRuleException;
 import com.logistica.demo.shared.exception.ResourceNotFoundException;
 import com.logistica.demo.shared.security.CurrentUserService;
@@ -31,14 +32,17 @@ public class RecepcionAlmacenService {
     private final OrdenCompraRepository ordenCompraRepository;
     private final RecepcionAlmacenRepository recepcionRepository;
     private final CurrentUserService currentUserService;
+    private final InventoryService inventoryService;
 
     public RecepcionAlmacenService(
             OrdenCompraRepository ordenCompraRepository,
             RecepcionAlmacenRepository recepcionRepository,
-            CurrentUserService currentUserService) {
+            CurrentUserService currentUserService,
+            InventoryService inventoryService) {
         this.ordenCompraRepository = ordenCompraRepository;
         this.recepcionRepository = recepcionRepository;
         this.currentUserService = currentUserService;
+        this.inventoryService = inventoryService;
     }
 
     @Transactional
@@ -92,6 +96,7 @@ public class RecepcionAlmacenService {
         refreshOrdenStatus(ordenCompra);
         RecepcionAlmacen saved = recepcionRepository.save(recepcion);
         saved.setNumero("REC-%06d".formatted(saved.getId()));
+        inventoryService.registerReceipt(saved);
         return mapResponse(saved);
     }
 
@@ -119,7 +124,9 @@ public class RecepcionAlmacenService {
                 ? request.motivo().trim()
                 : null);
         refreshOrdenStatus(recepcion.getOrdenCompra());
-        return mapResponse(recepcionRepository.save(recepcion));
+        RecepcionAlmacen saved = recepcionRepository.save(recepcion);
+        inventoryService.registerReceiptReversal(saved);
+        return mapResponse(saved);
     }
 
     @Transactional(readOnly = true)

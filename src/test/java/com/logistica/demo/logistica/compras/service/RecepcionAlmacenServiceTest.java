@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.logistica.demo.logistica.compras.domain.EstadoOrdenCompra;
@@ -16,6 +17,7 @@ import com.logistica.demo.logistica.compras.dto.RecepcionLineaRequest;
 import com.logistica.demo.logistica.compras.dto.RecepcionReversionRequest;
 import com.logistica.demo.logistica.compras.repository.OrdenCompraRepository;
 import com.logistica.demo.logistica.compras.repository.RecepcionAlmacenRepository;
+import com.logistica.demo.logistica.inventario.service.InventoryService;
 import com.logistica.demo.maestros.domain.Almacen;
 import com.logistica.demo.maestros.domain.Item;
 import com.logistica.demo.maestros.domain.Proveedor;
@@ -34,6 +36,7 @@ class RecepcionAlmacenServiceTest {
     private OrdenCompraRepository ordenCompraRepository;
     private RecepcionAlmacenRepository recepcionRepository;
     private CurrentUserService currentUserService;
+    private InventoryService inventoryService;
     private RecepcionAlmacenService service;
 
     @BeforeEach
@@ -41,7 +44,12 @@ class RecepcionAlmacenServiceTest {
         ordenCompraRepository = mock(OrdenCompraRepository.class);
         recepcionRepository = mock(RecepcionAlmacenRepository.class);
         currentUserService = mock(CurrentUserService.class);
-        service = new RecepcionAlmacenService(ordenCompraRepository, recepcionRepository, currentUserService);
+        inventoryService = mock(InventoryService.class);
+        service = new RecepcionAlmacenService(
+                ordenCompraRepository,
+                recepcionRepository,
+                currentUserService,
+                inventoryService);
     }
 
     @Test
@@ -68,6 +76,7 @@ class RecepcionAlmacenServiceTest {
         assertEquals("compras", response.actor());
         assertEquals(2, ordenCompra.getDetalles().get(0).getCantidadRecibida());
         assertEquals(EstadoOrdenCompra.PARCIALMENTE_RECIBIDA, ordenCompra.getEstado());
+        verify(inventoryService).registerReceipt(any(RecepcionAlmacen.class));
     }
 
     @Test
@@ -97,6 +106,7 @@ class RecepcionAlmacenServiceTest {
         assertEquals("error de conteo", response.reversalReason());
         assertEquals(0, ordenCompra.getDetalles().get(0).getCantidadRecibida());
         assertEquals(EstadoOrdenCompra.APROBADA, ordenCompra.getEstado());
+        verify(inventoryService).registerReceiptReversal(recepcion);
     }
 
     private RecepcionAlmacen recepcion(OrdenCompra ordenCompra) {
