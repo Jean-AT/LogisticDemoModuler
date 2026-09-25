@@ -77,6 +77,8 @@ public class RequerimientoService {
 
     @Transactional
     public RequerimientoResponse create(RequerimientoCreateRequest request) {
+        validateRequest(request);
+
         Proveedor proveedor = proveedorRepository.findById(request.proveedorId())
                 .filter(Proveedor::isActive)
                 .orElseThrow(() -> new ResourceNotFoundException("Proveedor no encontrado."));
@@ -160,9 +162,7 @@ public class RequerimientoService {
             throw new BusinessRuleException(
                     "Solo se puede editar un requerimiento en estado BORRADOR u OBSERVADO.");
         }
-        if (request.detalles() == null || request.detalles().isEmpty()) {
-            throw new BusinessRuleException("El requerimiento debe tener al menos un detalle.");
-        }
+        validateRequest(request);
 
         Proveedor proveedor = proveedorRepository.findById(request.proveedorId())
                 .filter(Proveedor::isActive)
@@ -274,6 +274,46 @@ public class RequerimientoService {
             detalles.add(detalle);
         }
         return detalles;
+    }
+
+    private void validateRequest(RequerimientoCreateRequest request) {
+        if (request == null) {
+            throw new BadRequestException("El requerimiento es obligatorio.");
+        }
+        if (request.descripcion() == null || request.descripcion().isBlank()) {
+            throw new BadRequestException("La descripcion es obligatoria.");
+        }
+        if (request.proveedorId() == null || request.proveedorId() <= 0) {
+            throw new BadRequestException("El proveedor es obligatorio.");
+        }
+        if (request.moneda() == null) {
+            throw new BadRequestException("La moneda es obligatoria.");
+        }
+        if (request.detalles() == null || request.detalles().isEmpty()) {
+            throw new BadRequestException("El requerimiento debe tener al menos un detalle.");
+        }
+        for (int i = 0; i < request.detalles().size(); i++) {
+            validateDetalle(request.detalles().get(i), i + 1);
+        }
+    }
+
+    private void validateDetalle(RequerimientoDetalleRequest request, int lineNumber) {
+        String prefix = "Detalle %d: ".formatted(lineNumber);
+        if (request == null) {
+            throw new BadRequestException(prefix + "el detalle es obligatorio.");
+        }
+        if (request.itemId() == null || request.itemId() <= 0) {
+            throw new BadRequestException(prefix + "el item es obligatorio.");
+        }
+        if (request.almacenId() == null || request.almacenId() <= 0) {
+            throw new BadRequestException(prefix + "el almacen es obligatorio.");
+        }
+        if (request.cantidad() == null || request.cantidad() <= 0) {
+            throw new BadRequestException(prefix + "la cantidad debe ser mayor que cero.");
+        }
+        if (request.precioUnitarioEstimado() == null || request.precioUnitarioEstimado().compareTo(BigDecimal.ZERO) < 0) {
+            throw new BadRequestException(prefix + "el precio unitario estimado no puede ser negativo.");
+        }
     }
 
     private void validateNeedsLineRequest(RequerimientoFromNeedsLineRequest request) {

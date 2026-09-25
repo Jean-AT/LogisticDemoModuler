@@ -7,9 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.logistica.demo.cuadronecesidades.api.NeedsBudgetTransferCommand;
-import com.logistica.demo.cuadronecesidades.api.NeedsBudgetTransferPort;
-import com.logistica.demo.cuadronecesidades.api.NeedsBudgetTransferResult;
 import com.logistica.demo.cuadronecesidades.domain.TipoVentanaCuadroNecesidad;
 import com.logistica.demo.cuadronecesidades.domain.VentanaCuadroNecesidad;
 import com.logistica.demo.cuadronecesidades.infrastructure.persistence.VentanaCuadroNecesidadRepository;
@@ -25,17 +22,13 @@ import java.time.OffsetDateTime;
 import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -53,9 +46,6 @@ class DemoApplicationTests {
 
     @Autowired
     private VentanaCuadroNecesidadRepository needsWindows;
-
-    @Autowired
-    private RecordingNeedsBudgetTransferPort needsBudgetTransferPort;
 
     @Test
     void contextLoads() {
@@ -790,7 +780,6 @@ class DemoApplicationTests {
 
     @Test
     void shouldCompleteAnnualNeedsFlowThroughApiWithIdempotentTransferAndBalances() throws Exception {
-        needsBudgetTransferPort.reset();
         ensureOpenNeedsWindows(1L, 2026);
 
         HttpResponse<String> create = send(
@@ -863,7 +852,6 @@ class DemoApplicationTests {
         assertEquals(200, replayTransfer.statusCode());
         assertEquals(firstTransferBody.get("transferId").asLong(), replayTransferBody.get("transferId").asLong());
         assertEquals(true, replayTransferBody.get("replayed").asBoolean());
-        assertEquals(1, needsBudgetTransferPort.callCount());
 
         HttpResponse<String> balance = send(
                 "GET",
@@ -886,6 +874,242 @@ class DemoApplicationTests {
         assertEquals(200, traceability.statusCode());
         assertEquals("TRANSFERRED", traceabilityBody.get("plan").get("status").asText());
         assertEquals("TRANSFERRED", traceabilityBody.get("consolidations").get(0).get("status").asText());
+    }
+
+    @Test
+    void shouldCompleteMvp1EndToEndFlowThroughHttpApi() throws Exception {
+        ensureOpenNeedsWindows(1L, 2026);
+
+        HttpResponse<String> createPlan = send(
+                "POST",
+                "/api/v1/needs/plans",
+                buildNeedsPlanRequest(0, 1, 0, "Plan anual API INT-T01"),
+                "solicitante",
+                "demo123");
+        JsonNode plan = objectMapper.readTree(createPlan.body());
+        assertEquals(201, createPlan.statusCode());
+        long planId = plan.get("id").asLong();
+        long needsLineId = plan.get("details").get(0).get("id").asLong();
+        long costCenterId = plan.get("costCenterId").asLong();
+        long financingSourceId = plan.get("financingSourceId").asLong();
+        long goalId = plan.get("goalId").asLong();
+        long expenseClassifierId = plan.get("details").get(0).get("expenseClassifierId").asLong();
+
+        assertEquals(200, send("POST", "/api/v1/needs/plans/" + planId + "/submit", null, "solicitante", "demo123").statusCode());
+        HttpResponse<String> reviewPlan = send(
+                "POST",
+                "/api/v1/needs/plans/" + planId + "/review",
+                buildNeedsReviewRequest(),
+                "aprobador",
+                "demo123");
+        assertEquals(200, reviewPlan.statusCode());
+        assertEquals("REVIEWED", objectMapper.readTree(reviewPlan.body()).get("status").asText());
+
+        HttpResponse<String> consolidate = send(
+                "POST",
+                "/api/v1/needs/consolidations?companyId=1&fiscalYear=2026",
+                null,
+                "aprobador",
+                "demo123");
+        JsonNode consolidation = objectMapper.readTree(consolidate.body());
+        assertEquals(201, consolidate.statusCode());
+        long consolidationId = consolidation.get("id").asLong();
+
+        HttpResponse<String> transfer = sendWithHeader(
+                "POST",
+                "/api/v1/needs/consolidations/" + consolidationId + "/transfer",
+                null,
+                "aprobador",
+                "demo123",
+                "Idempotency-Key",
+                "int-t01-transfer-" + consolidationId);
+        JsonNode transferBody = objectMapper.readTree(transfer.body());
+        assertEquals(200, transfer.statusCode());
+        assertEquals(false, transferBody.get("replayed").asBoolean());
+        assertEquals(1, transferBody.get("transferredLines").asInt());
+
+        String budgetPlanRequest = "{\"companyId\":1,\"fiscalYear\":2026,\"notes\":\"INT-T01\"}";
+        assertEquals(200, send(
+                "POST",
+                "/api/v1/budget/plans/pia/generate",
+                budgetPlanRequest,
+                "aprobador",
+                "demo123").statusCode());
+        assertEquals(200, send(
+                "POST",
+                "/api/v1/budget/plans/pia/review",
+                budgetPlanRequest,
+                "aprobador",
+                "demo123").statusCode());
+        assertEquals(200, send(
+                "POST",
+                "/api/v1/budget/plans/pia/approve",
+                budgetPlanRequest,
+                "aprobador",
+                "demo123").statusCode());
+
+        String availabilityPath = "/api/v1/budget/availability?companyId=1&fiscalYear=2026&month=1"
+                + "&costCenterId=" + costCenterId
+                + "&financingSourceId=" + financingSourceId
+                + "&goalId=" + goalId
+                + "&expenseClassifierId=" + expenseClassifierId
+                + "&currency=PEN";
+        HttpResponse<String> initialAvailabilityResponse = send(
+                "GET",
+                availabilityPath,
+                null,
+                "solicitante",
+                "demo123");
+        assertEquals(200, initialAvailabilityResponse.statusCode());
+        JsonNode initialAvailability = objectMapper.readTree(initialAvailabilityResponse.body());
+        assertEquals(1L, initialAvailability.get("companyId").asLong());
+        assertDecimalEquals("100.0000", initialAvailability.get("assigned"));
+        assertDecimalEquals("100.0000", initialAvailability.get("available"));
+
+        long proveedorId = firstId("/api/proveedores");
+        long almacenId = firstId("/api/almacenes");
+        ObjectNode requisitionRequest = objectMapper.createObjectNode();
+        requisitionRequest.put("descripcion", "Requerimiento INT-T01 desde cuadro");
+        requisitionRequest.put("proveedorId", proveedorId);
+        requisitionRequest.put("moneda", "PEN");
+        requisitionRequest.put("companyId", 1);
+        requisitionRequest.put("needsLineId", needsLineId);
+        requisitionRequest.put("almacenId", almacenId);
+        requisitionRequest.put("cantidad", 12);
+        requisitionRequest.put("precioUnitarioEstimado", "100.00");
+
+        HttpResponse<String> createRequisition = send(
+                "POST",
+                "/api/v1/requerimientos/desde-cuadro",
+                objectMapper.writeValueAsString(requisitionRequest),
+                "solicitante",
+                "demo123");
+        JsonNode requisition = objectMapper.readTree(createRequisition.body());
+        assertEquals(201, createRequisition.statusCode());
+        long requerimientoId = requisition.get("id").asLong();
+        long itemId = requisition.get("detalles").get(0).get("itemId").asLong();
+
+        JsonNode balanceAfterRequisition = objectMapper.readTree(send(
+                "GET",
+                "/api/v1/needs/balances/" + needsLineId + "?companyId=1",
+                null,
+                "solicitante",
+                "demo123").body());
+        assertDecimalEquals("12.0000", balanceAfterRequisition.get("availableQuantity"));
+
+        assertEquals(200, send(
+                "POST",
+                "/api/v1/requerimientos/" + requerimientoId + "/enviar",
+                null,
+                "solicitante",
+                "demo123").statusCode());
+
+        HttpResponse<String> approveRequisition = send(
+                "POST",
+                "/api/v1/aprobaciones/" + requerimientoId + "/aprobar",
+                "{\"comentario\":\"Aprobado por INT-T01\"}",
+                "aprobador",
+                "demo123");
+        JsonNode approvedRequisition = objectMapper.readTree(approveRequisition.body());
+        assertEquals(200, approveRequisition.statusCode());
+        assertEquals("APROBADO", approvedRequisition.get("estado").asText());
+        assertTrue(approvedRequisition.get("budgetControlId").asLong() > 0);
+
+        JsonNode precommittedAvailability = objectMapper.readTree(send(
+                "GET",
+                availabilityPath,
+                null,
+                "solicitante",
+                "demo123").body());
+        assertDecimalEquals("100.0000", precommittedAvailability.get("precommitted"));
+        assertDecimalEquals("0.0000", precommittedAvailability.get("available"));
+
+        HttpResponse<String> createPurchaseOrder = send(
+                "POST",
+                "/api/v1/ordenes-compra/desde-requerimiento/" + requerimientoId,
+                null,
+                "compras",
+                "demo123");
+        JsonNode purchaseOrder = objectMapper.readTree(createPurchaseOrder.body());
+        assertEquals(201, createPurchaseOrder.statusCode());
+        long ordenCompraId = purchaseOrder.get("id").asLong();
+        long ordenCompraDetalleId = purchaseOrder.get("detalles").get(0).get("id").asLong();
+
+        HttpResponse<String> approvePurchaseOrder = send(
+                "POST",
+                "/api/v1/ordenes-compra/" + ordenCompraId + "/aprobar",
+                null,
+                "aprobador",
+                "demo123");
+        JsonNode approvedPurchaseOrder = objectMapper.readTree(approvePurchaseOrder.body());
+        assertEquals(200, approvePurchaseOrder.statusCode());
+        assertEquals("APROBADA", approvedPurchaseOrder.get("estado").asText());
+
+        JsonNode committedAvailability = objectMapper.readTree(send(
+                "GET",
+                availabilityPath,
+                null,
+                "solicitante",
+                "demo123").body());
+        assertDecimalEquals("0.0000", committedAvailability.get("precommitted"));
+        assertDecimalEquals("100.0000", committedAvailability.get("committed"));
+
+        ObjectNode receiptRequest = objectMapper.createObjectNode();
+        receiptRequest.putArray("lineas")
+                .addObject()
+                .put("ordenCompraDetalleId", ordenCompraDetalleId)
+                .put("cantidadRecibida", 12);
+        HttpResponse<String> createReceipt = send(
+                "POST",
+                "/api/v1/recepciones-almacen/ordenes-compra/" + ordenCompraId,
+                objectMapper.writeValueAsString(receiptRequest),
+                "compras",
+                "demo123");
+        JsonNode receipt = objectMapper.readTree(createReceipt.body());
+        assertEquals(201, createReceipt.statusCode());
+        assertEquals("REGISTRADA", receipt.get("estado").asText());
+
+        JsonNode kardex = objectMapper.readTree(send(
+                "GET",
+                "/api/v1/inventario/kardex?itemId=" + itemId + "&almacenId=" + almacenId,
+                null,
+                "compras",
+                "demo123").body());
+        assertTrue(kardex.isArray());
+        assertTrue(kardex.size() >= 1);
+        assertEquals("RECEPCION_ALMACEN", kardex.get(kardex.size() - 1).get("sourceType").asText());
+        assertDecimalEquals("12.0000", kardex.get(kardex.size() - 1).get("saldo"));
+
+        JsonNode stockProjection = objectMapper.readTree(send(
+                "GET",
+                "/api/v1/inventario/proyeccion?itemId=" + itemId + "&almacenId=" + almacenId,
+                null,
+                "compras",
+                "demo123").body());
+        assertDecimalEquals("12.0000", stockProjection.get("stockActual"));
+        assertDecimalEquals("12.0000", stockProjection.get("stockProyectado"));
+
+        HttpResponse<String> logisticsTraceResponse = send(
+                "GET",
+                "/api/v1/logistica/trazabilidad/requerimientos/" + requerimientoId,
+                null,
+                "aprobador",
+                "demo123");
+        assertEquals(200, logisticsTraceResponse.statusCode());
+        JsonNode logisticsTrace = objectMapper.readTree(logisticsTraceResponse.body());
+        assertEquals(requerimientoId, logisticsTrace.get("requerimientoId").asLong());
+        assertEquals(needsLineId, logisticsTrace.get("needsLineId").asLong());
+        assertTrue(logisticsTrace.get("budgetControlId").asLong() > 0);
+        assertTrue(logisticsTrace.get("events").size() >= 4);
+
+        HttpResponse<byte[]> tracePdf = sendBytes(
+                "GET",
+                "/api/v1/logistica/trazabilidad/requerimientos/" + requerimientoId + "/pdf",
+                null,
+                "aprobador",
+                "demo123");
+        assertEquals(200, tracePdf.statusCode());
+        assertTrue(extractPdfText(tracePdf.body()).contains("TRAZABILIDAD LOGISTICA"));
     }
 
     @Test
@@ -930,6 +1154,14 @@ class DemoApplicationTests {
     }
 
     private String buildNeedsPlanRequest(int costCenterIndex, String title) throws Exception {
+        return buildNeedsPlanRequest(costCenterIndex, 0, 0, title);
+    }
+
+    private String buildNeedsPlanRequest(
+            int costCenterIndex,
+            int financingSourceIndex,
+            int goalIndex,
+            String title) throws Exception {
         JsonNode costCenters = objectMapper.readTree(send(
                 "GET",
                 "/api/v1/platform/catalog/cost-centers?companyId=1",
@@ -960,8 +1192,8 @@ class DemoApplicationTests {
         request.put("companyId", 1);
         request.put("fiscalYear", 2026);
         request.put("costCenterId", costCenters.get(costCenterIndex).get("id").asLong());
-        request.put("financingSourceId", financingSources.get(0).get("id").asLong());
-        request.put("goalId", goals.get(0).get("id").asLong());
+        request.put("financingSourceId", financingSources.get(financingSourceIndex).get("id").asLong());
+        request.put("goalId", goals.get(goalIndex).get("id").asLong());
         request.put("title", title);
 
         ObjectNode detail = objectMapper.createObjectNode();
@@ -1135,36 +1367,4 @@ class DemoApplicationTests {
         }
     }
 
-    @TestConfiguration
-    static class NeedsBudgetTransferTestConfig {
-
-        @Bean
-        @Primary
-        RecordingNeedsBudgetTransferPort recordingNeedsBudgetTransferPort() {
-            return new RecordingNeedsBudgetTransferPort();
-        }
-    }
-
-    static class RecordingNeedsBudgetTransferPort implements NeedsBudgetTransferPort {
-
-        private final AtomicLong calls = new AtomicLong();
-
-        @Override
-        public NeedsBudgetTransferResult transfer(NeedsBudgetTransferCommand command) {
-            calls.incrementAndGet();
-            return new NeedsBudgetTransferResult(
-                    5000L + command.consolidationId(),
-                    7000L + command.fiscalYear(),
-                    command.lines().size(),
-                    false);
-        }
-
-        void reset() {
-            calls.set(0);
-        }
-
-        long callCount() {
-            return calls.get();
-        }
-    }
 }

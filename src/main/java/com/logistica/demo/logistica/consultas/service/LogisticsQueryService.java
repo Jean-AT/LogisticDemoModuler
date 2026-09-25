@@ -125,7 +125,7 @@ public class LogisticsQueryService {
                        detail
                 FROM (
                     SELECT 'REQUERIMIENTO' AS stage,
-                           req.estado AS status,
+                           CAST(req.estado AS VARCHAR) AS status,
                            req.id AS reference_id,
                            req.numero AS reference_number,
                            req.created_by AS actor,
@@ -135,7 +135,7 @@ public class LogisticsQueryService {
                     WHERE req.id = ?
                     UNION ALL
                     SELECT 'ESTADO_REQUERIMIENTO',
-                           history.estado_nuevo,
+                           CAST(history.estado_nuevo AS VARCHAR),
                            history.id,
                            req.numero,
                            history.created_by,
@@ -146,7 +146,7 @@ public class LogisticsQueryService {
                     WHERE req.id = ?
                     UNION ALL
                     SELECT 'APROBACION',
-                           approval.accion,
+                           CAST(approval.accion AS VARCHAR),
                            approval.id,
                            req.numero,
                            approval.created_by,
@@ -157,7 +157,7 @@ public class LogisticsQueryService {
                     WHERE req.id = ?
                     UNION ALL
                     SELECT 'ORDEN_COMPRA',
-                           oc.estado,
+                           CAST(oc.estado AS VARCHAR),
                            oc.id,
                            oc.numero,
                            oc.created_by,
@@ -167,7 +167,7 @@ public class LogisticsQueryService {
                     WHERE oc.requerimiento_id = ?
                     UNION ALL
                     SELECT 'APROBACION_OC',
-                           oc.estado,
+                           CAST(oc.estado AS VARCHAR),
                            oc.id,
                            oc.numero,
                            oc.approved_by,
@@ -178,7 +178,7 @@ public class LogisticsQueryService {
                       AND oc.approved_at IS NOT NULL
                     UNION ALL
                     SELECT 'RECEPCION',
-                           receipt.estado,
+                           CAST(receipt.estado AS VARCHAR),
                            receipt.id,
                            receipt.numero,
                            receipt.actor,
@@ -189,7 +189,7 @@ public class LogisticsQueryService {
                     WHERE oc.requerimiento_id = ?
                     UNION ALL
                     SELECT 'REVERSION_RECEPCION',
-                           receipt.estado,
+                           CAST(receipt.estado AS VARCHAR),
                            receipt.id,
                            receipt.numero,
                            receipt.reversed_by,
@@ -201,7 +201,7 @@ public class LogisticsQueryService {
                       AND receipt.reversed_at IS NOT NULL
                     UNION ALL
                     SELECT 'KARDEX',
-                           movement.tipo,
+                           CAST(movement.tipo AS VARCHAR),
                            movement.id,
                            movement.source_number,
                            movement.actor,

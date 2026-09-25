@@ -89,6 +89,17 @@ public class NeedsPlanningService {
     @Transactional
     public NeedsPlanResponse createPlan(CreateNeedsPlanRequest request) {
         try {
+            plans.findByCompanyIdAndFiscalYearAndCostCenterIdAndFinancingSourceIdAndGoalId(
+                            request.companyId(),
+                            request.fiscalYear(),
+                            request.costCenterId(),
+                            request.financingSourceId(),
+                            request.goalId())
+                    .ifPresent(existing -> {
+                        throw new BusinessRuleException(
+                                "Ya existe un cuadro de necesidades para la empresa, anio fiscal, centro de costo, fuente de financiamiento y meta indicados.");
+                    });
+
             CuadroNecesidad plan = new CuadroNecesidad(
                     request.companyId(),
                     request.fiscalYear(),
